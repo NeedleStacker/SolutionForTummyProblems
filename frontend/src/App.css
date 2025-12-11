@@ -1,0 +1,45 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+.search-bar {
+  margin: 20px 0;
+}
+
+.search-bar input {
+  margin: 0 10px;
+  padding: 10px;
+  width: 300px;
+}
+
+.container {
+  display: flex;
+}
+
+.recipe-list {
+  width: 40%;
+  border-right: 1px solid #ccc;
+  padding: 20px;
+}
+
+.recipe-item {
+  cursor: pointer;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.recipe-item:hover {
+  background-color: #f0f0f0;
+}
+
+.recipe-details {
+  width: 60%;
+  padding: 20px;
+  text-align: left;
+}
