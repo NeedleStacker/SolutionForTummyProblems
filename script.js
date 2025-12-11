@@ -7,23 +7,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let searchTimeout;
 
+    // Custom parser for the database string format "[item1,item2,item3]"
+    const parseCustomList = (str, delimiter = ',') => {
+        if (!str || typeof str !== 'string' || str.length < 2) {
+            return [];
+        }
+        // Remove leading '[' and trailing ']' and then split
+        return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
+    };
+
     function fetchRecipes() {
         const search = searchInput.value;
         const site = siteFilter.value;
-
-        let url = `api.php?`; // Use relative path
-        if (search) {
-            url += `search=${search}`;
-        }
-        if (site) {
-            url += `&site=${site}`;
-        }
+        let url = `api.php?`;
+        if (search) url += `search=${search}`;
+        if (site) url += `&site=${site}`;
 
         fetch(url)
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
             })
             .then(data => {
@@ -37,11 +39,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     data.forEach(recipe => {
                         const recipeCard = document.createElement('div');
                         recipeCard.className = 'col-12 col-md-6 col-lg-4 mb-4';
+
+                        // Parse ingredients for the card display
+                        const ingredientsPreview = parseCustomList(recipe.ingredients).slice(0, 3).join(', ');
+
                         recipeCard.innerHTML = `
                             <div class="card recipe-card">
                                 <div class="card-body">
                                     <h5 class="card-title">${recipe.title}</h5>
-                                    <p class="card-text text-muted">${recipe.site}</p>
+                                    <p class="card-text">${ingredientsPreview}...</p>
                                 </div>
                             </div>
                         `;
@@ -59,11 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function fetchRecipeDetails(id) {
-        fetch(`api.php?id=${id}`) // Use relative path
+        fetch(`api.php?id=${id}`)
             .then(response => {
-                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
             })
             .then(data => {
@@ -73,82 +77,53 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // Show details, hide search/results
                 searchSection.style.display = 'none';
                 resultsSection.style.display = 'none';
                 recipeDetailsSection.style.display = 'block';
 
-                let directions = [];
-                let shoppingList = [];
-
-                // Custom parser for the database string format "[item1,item2,item3]"
-                const parseCustomList = (str, delimiter = ',') => {
-                    if (!str || typeof str !== 'string' || str.length < 2) {
-                        return [];
-                    }
-                    // Remove leading '[' and trailing ']' and then split
-                    return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
-                };
+                let shoppingList = [], directions = [];
 
                 try {
-                    // Use the custom parser instead of JSON.parse
-                    shoppingList = parseCustomList(data.ner); // ner is comma-separated
-                    directions = parseCustomList(data.directions, '.,'); // directions are '.,' separated
+                    shoppingList = parseCustomList(data.ner);
+                    directions = parseCustomList(data.directions, '.,');
                 } catch (error) {
                     console.error('Error parsing data from database:', error);
                     recipeDetailsSection.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
                     return;
                 }
 
-                // Generate directions HTML
-                const directionsHtml = directions.map((step, index) => {
-                    if (!step) return ''; // Don't render empty steps
-                    return `
-                        <div class="single-preparation-step d-flex">
-                            <h4>${String(index + 1).padStart(2, '0')}.</h4>
-                            <p>${step}</p>
-                        </div>
-                    `;
-                }).join('');
+                const directionsHtml = directions.map((step, index) => step ? `
+                    <div class="single-preparation-step d-flex">
+                        <h4>${String(index + 1).padStart(2, '0')}.</h4>
+                        <p>${step}</p>
+                    </div>` : '').join('');
 
-                // Generate ingredients HTML (using the NER/shopping list)
-                const ingredientsHtml = shoppingList.map((item, index) => {
-                    if (!item) return ''; // Don't render empty items
-                    return `
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="customCheck${index}">
-                            <label class="custom-control-label" for="customCheck${index}">${item}</label>
-                        </div>
-                    `;
-                }).join('');
+                const ingredientsHtml = shoppingList.map((item, index) => item ? `
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="customCheck${index}">
+                        <label class="custom-control-label" for="customCheck${index}">${item}</label>
+                    </div>` : '').join('');
 
                 recipeDetailsSection.innerHTML = `
                     <div class="container">
                         <button class="btn btn-primary back-button mb-4">← Back to Search</button>
                         <div class="row">
-                            <div class="col-12">
-                                <div class="receipe-headline my-5">
-                                    <h2>${data.title}</h2>
-                                    <p class="text-muted">From: <a href="http://${data.site}" target="_blank">${data.site}</a></p>
-                                </div>
-                            </div>
+                            <div class="col-12"><div class="receipe-headline my-5"><h2>${data.title}</h2><p class="text-muted">From: <a href="http://${data.site}" target="_blank">${data.site}</a></p></div></div>
                         </div>
                         <div class="row">
-                            <div class="col-12 col-lg-8">
-                                ${directionsHtml}
-                            </div>
+                            <div class="col-12 col-lg-8">${directionsHtml}</div>
                             <div class="col-12 col-lg-4">
                                 <div class="ingredients">
                                     <h4>Shopping List</h4>
                                     ${ingredientsHtml}
+                                    <button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Shopping List</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
 
-                // Add event listener for the new back button
                 recipeDetailsSection.querySelector('.back-button').addEventListener('click', showSearchView);
+                recipeDetailsSection.querySelector('#print-list-btn').addEventListener('click', () => printShoppingList(data.title));
             })
             .catch(error => {
                 console.error('Error fetching recipe details:', error);
@@ -156,23 +131,41 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    function showSearchView() {
-        searchSection.style.display = 'block';
-        resultsSection.style.display = 'flex'; // it's a row, so flex
-        recipeDetailsSection.style.display = 'none';
-        recipeDetailsSection.innerHTML = ''; // Clear details
+    function printShoppingList(recipeTitle) {
+        const checkboxes = recipeDetailsSection.querySelectorAll('.custom-control-input');
+        const selectedItems = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.nextElementSibling.textContent);
+
+        if (selectedItems.length === 0) {
+            alert('Please select ingredients to print.');
+            return;
+        }
+
+        const printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write('<html><head><title>Shopping List</title>');
+        printWindow.document.write('<style>body{font-family:sans-serif;} ul{list-style:none; padding:0;} li{margin-bottom:10px;}</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write(`<h2>Shopping List for: ${recipeTitle}</h2>`);
+        printWindow.document.write('<ul>');
+        selectedItems.forEach(item => {
+            printWindow.document.write(`<li>☐ ${item}</li>`);
+        });
+        printWindow.document.write('</ul>');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
     }
 
-    searchInput.addEventListener('input', () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(fetchRecipes, 300);
-    });
+    function showSearchView() {
+        searchSection.style.display = 'block';
+        resultsSection.style.display = 'flex';
+        recipeDetailsSection.style.display = 'none';
+        recipeDetailsSection.innerHTML = '';
+    }
 
-    siteFilter.addEventListener('input', () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(fetchRecipes, 300);
-    });
+    searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(fetchRecipes, 300); });
+    siteFilter.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(fetchRecipes, 300); });
 
-    // Initial fetch
     fetchRecipes();
 });
