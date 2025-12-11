@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const siteFilter = document.getElementById('site-filter');
-    const recipeList = document.getElementById('recipe-list');
-    const recipeDetails = document.getElementById('recipe-details');
+    const searchSection = document.getElementById('search-section');
+    const resultsSection = document.getElementById('results-section');
+    const recipeDetailsSection = document.getElementById('recipe-details-section');
 
     let searchTimeout;
 
@@ -23,18 +24,27 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (data.error) {
                     console.error('Error from API:', data.error);
-                    recipeList.innerHTML = '<p>Error loading recipes. Please check the console for details.</p>';
+                    resultsSection.innerHTML = '<p class="col-12 text-center">Error loading recipes.</p>';
                     return;
                 }
-                recipeList.innerHTML = '';
-                if (Array.isArray(data)) {
+                resultsSection.innerHTML = '';
+                if (Array.isArray(data) && data.length > 0) {
                     data.forEach(recipe => {
-                        const recipeItem = document.createElement('div');
-                        recipeItem.className = 'recipe-item';
-                        recipeItem.innerHTML = `<h3>${recipe.title}</h3><p>${recipe.site}</p>`;
-                        recipeItem.addEventListener('click', () => fetchRecipeDetails(recipe.id));
-                        recipeList.appendChild(recipeItem);
+                        const recipeCard = document.createElement('div');
+                        recipeCard.className = 'col-12 col-md-6 col-lg-4 mb-4';
+                        recipeCard.innerHTML = `
+                            <div class="card recipe-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${recipe.title}</h5>
+                                    <p class="card-text text-muted">${recipe.site}</p>
+                                </div>
+                            </div>
+                        `;
+                        recipeCard.addEventListener('click', () => fetchRecipeDetails(recipe.id));
+                        resultsSection.appendChild(recipeCard);
                     });
+                } else {
+                    resultsSection.innerHTML = '<p class="col-12 text-center">No recipes found.</p>';
                 }
             })
             .catch(error => console.error('Error fetching recipes:', error));
@@ -46,45 +56,81 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (data.error) {
                     console.error('Error from API:', data.error);
-                    recipeDetails.innerHTML = '<p>Error loading recipe details. Please check the console for details.</p>';
+                    recipeDetailsSection.innerHTML = '<p>Error loading recipe details.</p>';
                     return;
                 }
-                recipeDetails.style.display = 'block';
+
+                // Show details, hide search/results
+                searchSection.style.display = 'none';
+                resultsSection.style.display = 'none';
+                recipeDetailsSection.style.display = 'block';
 
                 let ingredients = [];
                 let directions = [];
                 let shoppingList = [];
 
                 try {
-                    ingredients = JSON.parse(data.ingredients);
-                    directions = JSON.parse(data.directions);
+                    // Use shopping list for ingredients, and ingredients for... well, let's keep it simple
                     shoppingList = JSON.parse(data.ner);
+                    directions = JSON.parse(data.directions);
                 } catch (error) {
                     console.error('Error parsing JSON from database:', error);
-                    // Handle cases where the data in the DB is not valid JSON
-                    recipeDetails.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
+                    recipeDetailsSection.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
                     return;
                 }
 
-                recipeDetails.innerHTML = `
-                    <h2>${data.title}</h2>
-                    <h3>Ingredients</h3>
-                    <ul>
-                        ${ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
-                    </ul>
-                    <h3>Directions</h3>
-                    <ol>
-                        ${directions.map(direction => `<li>${direction}</li>`).join('')}
-                    </ol>
-                    <h3>Shopping List</h3>
-                    <ul>
-                        ${shoppingList.map(item => `<li>${item}</li>`).join('')}
-                    </ul>
-                    <a href="http://${data.site}" target="_blank" rel="noopener noreferrer">Original Recipe</a>
-                    <button onclick="document.getElementById('recipe-details').style.display = 'none'">Close</button>
+                // Generate directions HTML
+                const directionsHtml = directions.map((step, index) => `
+                    <div class="single-preparation-step d-flex">
+                        <h4>${String(index + 1).padStart(2, '0')}.</h4>
+                        <p>${step}</p>
+                    </div>
+                `).join('');
+
+                // Generate ingredients HTML (using the NER/shopping list)
+                const ingredientsHtml = shoppingList.map((item, index) => `
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="customCheck${index}">
+                        <label class="custom-control-label" for="customCheck${index}">${item}</label>
+                    </div>
+                `).join('');
+
+                recipeDetailsSection.innerHTML = `
+                    <div class="container">
+                        <button class="btn btn-primary back-button mb-4">← Back to Search</button>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="receipe-headline my-5">
+                                    <h2>${data.title}</h2>
+                                    <p class="text-muted">From: <a href="http://${data.site}" target="_blank">${data.site}</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-lg-8">
+                                ${directionsHtml}
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                <div class="ingredients">
+                                    <h4>Shopping List</h4>
+                                    ${ingredientsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 `;
+
+                // Add event listener for the new back button
+                recipeDetailsSection.querySelector('.back-button').addEventListener('click', showSearchView);
             })
             .catch(error => console.error('Error fetching recipe details:', error));
+    }
+
+    function showSearchView() {
+        searchSection.style.display = 'block';
+        resultsSection.style.display = 'flex'; // it's a row, so flex
+        recipeDetailsSection.style.display = 'none';
+        recipeDetailsSection.innerHTML = ''; // Clear details
     }
 
     searchInput.addEventListener('input', () => {
@@ -97,5 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         searchTimeout = setTimeout(fetchRecipes, 300);
     });
 
+    // Initial fetch
     fetchRecipes();
 });

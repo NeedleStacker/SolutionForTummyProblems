@@ -4,20 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Search</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Recipe Search</h1>
-        <div class="search-bar">
-            <input type="text" id="search-input" placeholder="Search by title, ingredient, or shopping list item">
-            <input type="text" id="site-filter" placeholder="Filter by site">
+    <div class="container">
+        <!-- Search Section -->
+        <div id="search-section">
+            <div class="row">
+                <div class="col-12">
+                    <div class="receipe-headline my-5 text-center">
+                        <h2>Recipe Search</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8">
+                    <div class="search-bar form-group">
+                        <input type="text" id="search-input" class="form-control mb-2" placeholder="Search by title, ingredient, or shopping list item">
+                        <input type="text" id="site-filter" class="form-control" placeholder="Filter by site">
+                    </div>
+                </div>
+            </div>
         </div>
-    </header>
-    <main>
-        <div id="recipe-list" class="recipe-list"></div>
-        <div id="recipe-details" class="recipe-details-container" style="display: none;"></div>
-    </main>
+
+        <!-- Results Section -->
+        <div id="results-section" class="row">
+            <!-- Search results will be injected here by JavaScript -->
+        </div>
+
+        <!-- Details Section (hidden by default) -->
+        <div id="recipe-details-section" class="mt-5" style="display: none;">
+             <!-- Recipe details will be injected here by JavaScript -->
+        </div>
+
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
