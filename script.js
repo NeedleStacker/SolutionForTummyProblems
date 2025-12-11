@@ -78,35 +78,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultsSection.style.display = 'none';
                 recipeDetailsSection.style.display = 'block';
 
-                let ingredients = [];
                 let directions = [];
                 let shoppingList = [];
 
+                // Custom parser for the database string format "[item1,item2,item3]"
+                const parseCustomList = (str, delimiter = ',') => {
+                    if (!str || typeof str !== 'string' || str.length < 2) {
+                        return [];
+                    }
+                    // Remove leading '[' and trailing ']' and then split
+                    return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
+                };
+
                 try {
-                    // Use shopping list for ingredients
-                    shoppingList = JSON.parse(data.ner);
-                    directions = JSON.parse(data.directions);
+                    // Use the custom parser instead of JSON.parse
+                    shoppingList = parseCustomList(data.ner); // ner is comma-separated
+                    directions = parseCustomList(data.directions, '.,'); // directions are '.,' separated
                 } catch (error) {
-                    console.error('Error parsing JSON from database:', error);
+                    console.error('Error parsing data from database:', error);
                     recipeDetailsSection.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
                     return;
                 }
 
                 // Generate directions HTML
-                const directionsHtml = directions.map((step, index) => `
-                    <div class="single-preparation-step d-flex">
-                        <h4>${String(index + 1).padStart(2, '0')}.</h4>
-                        <p>${step}</p>
-                    </div>
-                `).join('');
+                const directionsHtml = directions.map((step, index) => {
+                    if (!step) return ''; // Don't render empty steps
+                    return `
+                        <div class="single-preparation-step d-flex">
+                            <h4>${String(index + 1).padStart(2, '0')}.</h4>
+                            <p>${step}</p>
+                        </div>
+                    `;
+                }).join('');
 
                 // Generate ingredients HTML (using the NER/shopping list)
-                const ingredientsHtml = shoppingList.map((item, index) => `
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="customCheck${index}">
-                        <label class="custom-control-label" for="customCheck${index}">${item}</label>
-                    </div>
-                `).join('');
+                const ingredientsHtml = shoppingList.map((item, index) => {
+                    if (!item) return ''; // Don't render empty items
+                    return `
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="customCheck${index}">
+                            <label class="custom-control-label" for="customCheck${index}">${item}</label>
+                        </div>
+                    `;
+                }).join('');
 
                 recipeDetailsSection.innerHTML = `
                     <div class="container">
