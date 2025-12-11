@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const search = searchInput.value;
         const site = siteFilter.value;
 
-        let url = `/api.php?`;
+        let url = `api.php?`; // Use relative path
         if (search) {
             url += `search=${search}`;
         }
@@ -20,7 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         fetch(url)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.error) {
                     console.error('Error from API:', data.error);
@@ -47,12 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     resultsSection.innerHTML = '<p class="col-12 text-center">No recipes found.</p>';
                 }
             })
-            .catch(error => console.error('Error fetching recipes:', error));
+            .catch(error => {
+                console.error('Error fetching recipes:', error);
+                resultsSection.innerHTML = `<p class="col-12 text-center">Failed to fetch recipes. Make sure api.php is in the correct location.</p>`;
+            });
     }
 
     function fetchRecipeDetails(id) {
-        fetch(`/api.php?id=${id}`)
-            .then(response => response.json())
+        fetch(`api.php?id=${id}`) // Use relative path
+            .then(response => {
+                 if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.error) {
                     console.error('Error from API:', data.error);
@@ -70,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let shoppingList = [];
 
                 try {
-                    // Use shopping list for ingredients, and ingredients for... well, let's keep it simple
+                    // Use shopping list for ingredients
                     shoppingList = JSON.parse(data.ner);
                     directions = JSON.parse(data.directions);
                 } catch (error) {
@@ -123,7 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Add event listener for the new back button
                 recipeDetailsSection.querySelector('.back-button').addEventListener('click', showSearchView);
             })
-            .catch(error => console.error('Error fetching recipe details:', error));
+            .catch(error => {
+                console.error('Error fetching recipe details:', error);
+                recipeDetailsSection.innerHTML = '<h2>Error</h2><p>Could not load recipe details.</p>';
+            });
     }
 
     function showSearchView() {
