@@ -85,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     shoppingList = parseCustomList(data.ner);
-                    directions = parseCustomList(data.directions, '.,');
+                    // Corrected delimiter for directions
+                    directions = parseCustomList(data.directions, ',');
                 } catch (error) {
                     console.error('Error parsing data from database:', error);
                     recipeDetailsSection.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
@@ -108,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="container">
                         <button class="btn btn-primary back-button mb-4">← Back to Search</button>
                         <div class="row">
-                            <div class="col-12"><div class="receipe-headline my-5"><h2>${data.title}</h2><p class="text-muted">From: <a href="http://${data.site}" target="_blank">${data.site}</a></p></div></div>
+                            <div class="col-12"><div class="receipe-headline my-5"><h2>${data.title}</h2></div></div>
                         </div>
                         <div class="row">
                             <div class="col-12 col-lg-8">${directionsHtml}</div>

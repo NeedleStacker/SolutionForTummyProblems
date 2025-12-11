@@ -1,5 +1,6 @@
 <?php
-header("Content-Type: application/json; charset=UTF-8");
+// Include the configuration and database connection setup
+require_once 'config.php';
 
 // Function to send a JSON error response and exit
 function send_json_error($message) {
@@ -8,29 +9,13 @@ function send_json_error($message) {
     exit;
 }
 
-// Enable error reporting to catch issues
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
+// Set a global error handler that uses our JSON error function
 set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
 try {
-    $servername = "localhost";
-    $username = "liveinsb_recipes";
-    $password = "your_password"; // TODO: User needs to replace this
-    $dbname = "liveinsb_recipes";
-
-    // Create connection
-    $conn = new mysqli($servername, $username, $password, $dbname);
-
-    // Check connection
-    if ($conn->connect_error) {
-        send_json_error("Connection failed: " . $conn->connect_error);
-    }
-
-    $conn->set_charset("utf8mb4");
-
+    // Sanitize inputs
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     $site = isset($_GET['site']) ? $_GET['site'] : '';
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -44,7 +29,7 @@ try {
         $types = "i";
         $params[] = $id;
     } else {
-        $baseSql = "SELECT * FROM recipes";
+        $baseSql = "SELECT id, title, ingredients, ner, site FROM recipes"; // Select only needed columns
         $conditions = [];
 
         if (!empty($search)) {
@@ -89,15 +74,6 @@ try {
 
     $recipes = [];
     while($row = $result->fetch_assoc()) {
-        // Check for invalid UTF-8 characters in each field before encoding
-        foreach ($row as $key => $value) {
-            if (!mb_check_encoding($value, 'UTF-8')) {
-                // You can either skip the row or try to clean it
-                // For now, we will skip the problematic row and log it
-                error_log("Skipping row with ID {$row['id']} due to invalid UTF-8 encoding in column '{$key}'.");
-                continue 2; // Continues the outer while loop
-            }
-        }
         $recipes[] = $row;
     }
 
@@ -111,7 +87,6 @@ try {
         $output = $recipes;
     }
 
-    // Final check before sending the response
     $json_output = json_encode($output);
     if (json_last_error() !== JSON_ERROR_NONE) {
         send_json_error("JSON encoding failed: " . json_last_error_msg());
@@ -120,7 +95,8 @@ try {
     echo $json_output;
 
 } catch (Throwable $e) {
-    // Catch any other errors (including connection, syntax, etc.)
-    send_json_error("An unexpected error occurred: " . $e->getMessage());
+    // Catch any other errors and send a generic message
+    error_log($e); // Log the actual error
+    send_json_error("An unexpected error occurred.");
 }
 ?>
