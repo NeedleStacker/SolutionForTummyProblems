@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(url)
             .then(response => response.json())
             .then(data => {
+                if (data.error) {
+                    console.error('Error from API:', data.error);
+                    recipeList.innerHTML = '<p>Error loading recipes. Please check the console for details.</p>';
+                    return;
+                }
                 recipeList.innerHTML = '';
                 if (Array.isArray(data)) {
                     data.forEach(recipe => {
@@ -39,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(`/api.php?id=${id}`)
             .then(response => response.json())
             .then(data => {
+                if (data.error) {
+                    console.error('Error from API:', data.error);
+                    recipeDetails.innerHTML = '<p>Error loading recipe details. Please check the console for details.</p>';
+                    return;
+                }
                 recipeDetails.style.display = 'block';
 
                 let ingredients = [];
@@ -50,8 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     directions = JSON.parse(data.directions);
                     shoppingList = JSON.parse(data.ner);
                 } catch (error) {
-                    console.error('Error parsing JSON:', error);
-                    // Handle cases where the data is not valid JSON
+                    console.error('Error parsing JSON from database:', error);
+                    // Handle cases where the data in the DB is not valid JSON
+                    recipeDetails.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
+                    return;
                 }
 
                 recipeDetails.innerHTML = `
