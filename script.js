@@ -6,11 +6,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let searchTimeout;
 
+    // --- NEW: Function to generate a light pastel color from a string (site name) ---
+    const stringToColor = (str) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        let color = '#';
+        for (let i = 0; i < 3; i++) {
+            let value = (hash >> (i * 8)) & 0xFF;
+            // Add 128 to each value to ensure the color is light/pastel
+            let lightValue = Math.min(255, value + 128);
+            color += ('00' + lightValue.toString(16)).substr(-2);
+        }
+        return color;
+    };
+
     // Custom parser for the database string format "[item1,item2,item3]"
     const parseCustomList = (str, delimiter = ',') => {
-        if (!str || typeof str !== 'string' || str.length < 2) {
-            return [];
-        }
+        if (!str || typeof str !== 'string' || str.length < 2) return [];
         return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
     };
 
@@ -36,8 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         const recipeCard = document.createElement('div');
                         recipeCard.className = 'col-12 col-md-6 col-lg-4 col-xl-3 mb-4';
                         const ingredientsPreview = parseCustomList(recipe.ingredients).slice(0, 3).join(', ');
+
+                        // --- NEW: Apply generated background color ---
+                        const cardColor = stringToColor(recipe.site);
+
                         recipeCard.innerHTML = `
-                            <div class="card recipe-card">
+                            <div class="card recipe-card" style="background-color: ${cardColor};">
                                 <div class="card-body">
                                     <h5 class="card-title">${recipe.title}</h5>
                                     <p class="card-text">${ingredientsPreview}...</p>
@@ -78,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     ingredients = parseCustomList(data.ingredients, ',');
                     shoppingList = parseCustomList(data.ner, ',');
-                    // Reverted to parsing directions as a list
                     directions = parseCustomList(data.directions, '.,');
                 } catch (error) {
                     console.error('Error parsing data from database:', error);
@@ -86,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // Reverted to generating numbered steps for directions
                 const directionsHtml = directions.map((step, index) => step ? `
                     <div class="single-preparation-step">
                         <h4>${String(index + 1).padStart(2, '0')}.</h4>
