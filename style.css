@@ -175,3 +175,22 @@ body {
         border: none;
     }
 }
+
+/* --- TOOLTIP STYLES --- */
+#unit-tooltip-box {
+  background: #222;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 999999;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  position: absolute; /* Ensure it's absolute */
+  display: none;    /* Initially hidden */
+}
+.unit-tooltip {
+  border-bottom: 1px dotted #888;
+  cursor: help;
+  position: relative; /* Needed for positioning context */
+}
