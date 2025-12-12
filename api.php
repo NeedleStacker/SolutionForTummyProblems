@@ -17,7 +17,6 @@ set_error_handler(function($severity, $message, $file, $line) {
 try {
     // Sanitize inputs
     $search = isset($_GET['search']) ? $_GET['search'] : '';
-    $site = isset($_GET['site']) ? $_GET['site'] : '';
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
     $sql = "";
@@ -35,14 +34,8 @@ try {
         if (!empty($search)) {
             $conditions[] = "(title LIKE ? OR ingredients LIKE ? OR ner LIKE ?)";
             $searchTerm = "%" . $search . "%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
+            $params = array_merge($params, [$searchTerm, $searchTerm, searchTerm]);
             $types .= 'sss';
-        }
-
-        if (!empty($site)) {
-            $conditions[] = "site = ?";
-            $params[] = $site;
-            $types .= 's';
         }
 
         if (count($conditions) > 0) {

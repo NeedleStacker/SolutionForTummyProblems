@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
-    const siteFilter = document.getElementById('site-filter');
     const searchSection = document.getElementById('search-section');
     const resultsSection = document.getElementById('results-section');
     const recipeDetailsSection = document.getElementById('recipe-details-section');
@@ -18,10 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchRecipes() {
         const search = searchInput.value;
-        const site = siteFilter.value;
         let url = `api.php?`;
         if (search) url += `search=${search}`;
-        if (site) url += `&site=${site}`;
 
         fetch(url)
             .then(response => {
@@ -166,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(fetchRecipes, 300); });
-    siteFilter.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(fetchRecipes, 300); });
 
     fetchRecipes();
 });
