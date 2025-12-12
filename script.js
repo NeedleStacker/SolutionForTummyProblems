@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(data) && data.length > 0) {
                     data.forEach(recipe => {
                         const recipeCard = document.createElement('div');
-                        recipeCard.className = 'col-12 col-md-6 col-lg-4 mb-4';
+                        recipeCard.className = 'col-12 col-md-6 col-lg-4 col-xl-3 mb-4'; // Added col-xl-3 for wider screens
 
                         // Parse ingredients for the card display
                         const ingredientsPreview = parseCustomList(recipe.ingredients).slice(0, 3).join(', ');
