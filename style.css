@@ -107,3 +107,24 @@ body {
 .back-button {
     margin-bottom: 2rem;
 }
+
+/* Print-specific styles */
+@media print {
+    body {
+        background-color: #fff;
+    }
+    .back-button, .print-recipe-btn, #print-list-btn, .search-bar, .custom-control-input, .custom-control-label::before, .custom-control-label::after {
+        display: none !important;
+    }
+    .container, .ingredients {
+        box-shadow: none;
+        border: none;
+    }
+    .col-lg-8, .col-lg-4 {
+        width: 100% !important; /* Make columns full width on paper */
+    }
+    a {
+        text-decoration: none;
+        color: #000;
+    }
+}
