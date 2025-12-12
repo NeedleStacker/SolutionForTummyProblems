@@ -1,9 +1,11 @@
 <?php
-// Enable full error reporting and log to a file
+// Enable full error reporting, but do not display to the user
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Disable displaying errors to the user
+ini_set('display_errors', 0);
 ini_set('log_errors', 1);
-ini_set('error_log', __DIR__ . '/php_error.log'); // Log errors in the same folder
+// The following line is commented out to prevent file permission errors on some hosts.
+// Errors will be logged to the server's default error log.
+// ini_set('error_log', __DIR__ . '/php_error.log');
 
 // Set headers for JSON content type and UTF-8 charset
 header("Content-Type: application/json; charset=utf-8");
