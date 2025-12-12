@@ -14,15 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
     };
 
-    // Function to format the directions string into a single paragraph
-    const formatDirectionsToParagraph = (str) => {
-        if (!str || typeof str !== 'string' || str.length < 2) {
-            return '';
-        }
-        // Remove brackets, split by '.,', and join with a space
-        return str.substring(1, str.length - 1).split('.,').map(s => s.trim()).join(' ');
-    };
-
     function fetchRecipes() {
         const search = searchInput.value;
         let url = `api.php?`;
@@ -82,17 +73,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultsSection.style.display = 'none';
                 recipeDetailsSection.style.display = 'block';
 
-                let ingredients = [], shoppingList = [], directionsText = '';
+                let ingredients = [], shoppingList = [], directions = [];
 
                 try {
                     ingredients = parseCustomList(data.ingredients, ',');
                     shoppingList = parseCustomList(data.ner, ',');
-                    directionsText = formatDirectionsToParagraph(data.directions);
+                    // Reverted to parsing directions as a list
+                    directions = parseCustomList(data.directions, '.,');
                 } catch (error) {
                     console.error('Error parsing data from database:', error);
                     recipeDetailsSection.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
                     return;
                 }
+
+                // Reverted to generating numbered steps for directions
+                const directionsHtml = directions.map((step, index) => step ? `
+                    <div class="single-preparation-step">
+                        <h4>${String(index + 1).padStart(2, '0')}.</h4>
+                        <p>${step}</p>
+                    </div>` : '').join('');
 
                 const ingredientsListHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
                 const shoppingListHtml = shoppingList.map((item, index) => item ? `
@@ -112,8 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="row recipe-body">
                             <div class="col-12 col-lg-8">
-                                <h4>Directions</h4>
-                                <p>${directionsText}</p>
+                                ${directionsHtml}
                             </div>
                             <div class="col-12 col-lg-4">
                                 <div class="ingredients mb-4">
