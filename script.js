@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- UNIT CONVERSION TOOLTIP LOGIC ---
-    const unitRegex = /\b(\d+(?:[.,]\d+)?)(\s?)(cm|mm|m|km|in|ft|yd|kg|g|mg|lb|oz|°C|°F|K|ml|mL|l|L)\b/gi;
+    const unitRegex = /\b(\d+(?:[.,]\d+)?)(\s?)(pounds|pound|ounce|ounces|inch|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)\b/gi;
 
     function applyTooltips(container) {
         const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
