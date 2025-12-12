@@ -28,24 +28,22 @@ try {
         $types = "i";
         $params[] = $id;
     } else {
-        $baseSql = "SELECT id, title, ingredients, ner, site FROM recipes"; // Select only needed columns
+        $baseSql = "SELECT id, title, ingredients, ner, site FROM recipes";
         $conditions = [];
 
         if (!empty($search)) {
             $conditions[] = "(title LIKE ? OR ingredients LIKE ? OR ner LIKE ?)";
             $searchTerm = "%" . $search . "%";
-            // Corrected the typo in the next line ($searchTerm was missing a $)
             $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
             $types .= 'sss';
-        }
-
-        if (count($conditions) > 0) {
-            $sql = $baseSql . " WHERE " . implode(" AND ", $conditions);
+            $baseSql .= " WHERE " . implode(" AND ", $conditions);
+            $baseSql .= " LIMIT 200"; // Increased limit for search
         } else {
-            $sql = $baseSql;
+            // If no search, order randomly and limit to 200
+            $baseSql .= " ORDER BY RAND() LIMIT 200";
         }
 
-        $sql .= " LIMIT 100";
+        $sql = $baseSql;
     }
 
     $stmt = $conn->prepare($sql);
