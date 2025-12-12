@@ -19,6 +19,27 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
+/* --- UPDATED PREPARATION STEP STYLES --- */
+.single-preparation-step {
+    margin-bottom: 15px; /* Reduced vertical space */
+    display: flex;
+    align-items: baseline; /* Aligns text based on their baseline */
+}
+
+.single-preparation-step h4 {
+    font-size: 1rem;      /* Same size as paragraph text */
+    font-weight: 700;     /* Make it bold */
+    color: #007bff;
+    margin-right: 15px;   /* Space between number and text */
+    padding-top: 0;       /* Remove padding that could cause misalignment */
+    flex-shrink: 0;       /* Prevent number from shrinking */
+}
+
+.single-preparation-step p {
+    margin: 0; /* Remove default paragraph margin */
+}
+
+
 .ingredients {
     background-color: #ffffff;
     padding: 30px;
