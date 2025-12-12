@@ -34,7 +34,8 @@ try {
         if (!empty($search)) {
             $conditions[] = "(title LIKE ? OR ingredients LIKE ? OR ner LIKE ?)";
             $searchTerm = "%" . $search . "%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, searchTerm]);
+            // Corrected the typo in the next line ($searchTerm was missing a $)
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
             $types .= 'sss';
         }
 
