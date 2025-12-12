@@ -11,8 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!str || typeof str !== 'string' || str.length < 2) {
             return [];
         }
-        // Remove leading '[' and trailing ']' and then split
         return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
+    };
+
+    // Function to format the directions string into a single paragraph
+    const formatDirectionsToParagraph = (str) => {
+        if (!str || typeof str !== 'string' || str.length < 2) {
+            return '';
+        }
+        // Remove brackets, split by '.,', and join with a space
+        return str.substring(1, str.length - 1).split('.,').map(s => s.trim()).join(' ');
     };
 
     function fetchRecipes() {
@@ -35,19 +43,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(data) && data.length > 0) {
                     data.forEach(recipe => {
                         const recipeCard = document.createElement('div');
-                        recipeCard.className = 'col-12 col-md-6 col-lg-4 col-xl-3 mb-4'; // Added col-xl-3 for wider screens
-
-                        // Parse ingredients for the card display
+                        recipeCard.className = 'col-12 col-md-6 col-lg-4 col-xl-3 mb-4';
                         const ingredientsPreview = parseCustomList(recipe.ingredients).slice(0, 3).join(', ');
-
                         recipeCard.innerHTML = `
                             <div class="card recipe-card">
                                 <div class="card-body">
                                     <h5 class="card-title">${recipe.title}</h5>
                                     <p class="card-text">${ingredientsPreview}...</p>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                         recipeCard.addEventListener('click', () => fetchRecipeDetails(recipe.id));
                         resultsSection.appendChild(recipeCard);
                     });
@@ -78,26 +82,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultsSection.style.display = 'none';
                 recipeDetailsSection.style.display = 'block';
 
-                let ingredients = [], shoppingList = [], directions = [];
+                let ingredients = [], shoppingList = [], directionsText = '';
 
                 try {
                     ingredients = parseCustomList(data.ingredients, ',');
                     shoppingList = parseCustomList(data.ner, ',');
-                    directions = parseCustomList(data.directions, ',');
+                    directionsText = formatDirectionsToParagraph(data.directions);
                 } catch (error) {
                     console.error('Error parsing data from database:', error);
                     recipeDetailsSection.innerHTML = '<h2>Error</h2><p>Could not parse recipe data.</p>';
                     return;
                 }
 
-                const directionsHtml = directions.map((step, index) => step ? `
-                    <div class="single-preparation-step">
-                        <h4>${String(index + 1).padStart(2, '0')}.</h4>
-                        <p>${step}</p>
-                    </div>` : '').join('');
-
                 const ingredientsListHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
-
                 const shoppingListHtml = shoppingList.map((item, index) => item ? `
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="customCheck${index}">
@@ -106,15 +103,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 recipeDetailsSection.innerHTML = `
                     <div class="container">
-                        <div class="d-flex justify-content-between mb-4">
+                        <div class="d-flex justify-content-between mb-4 action-buttons">
                             <button class="btn btn-primary back-button">← Back to Search</button>
                             <button class="btn btn-info print-recipe-btn">Print Recipe</button>
                         </div>
                         <div class="row">
                             <div class="col-12"><div class="receipe-headline my-5"><h2>${data.title}</h2></div></div>
                         </div>
-                        <div class="row">
-                            <div class="col-12 col-lg-8">${directionsHtml}</div>
+                        <div class="row recipe-body">
+                            <div class="col-12 col-lg-8">
+                                <h4>Directions</h4>
+                                <p>${directionsText}</p>
+                            </div>
                             <div class="col-12 col-lg-4">
                                 <div class="ingredients mb-4">
                                     <h4>Ingredients</h4>
