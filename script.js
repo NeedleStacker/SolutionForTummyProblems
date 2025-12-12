@@ -1,66 +1,41 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- Existing DOM elements ---
+document.addEventListener('DOMContentLoaded', async () => {
+    // --- Global Variables & DOM Elements ---
     const searchInput = document.getElementById('search-input');
     const searchSection = document.getElementById('search-section');
     const resultsSection = document.getElementById('results-section');
     const recipeDetailsSection = document.getElementById('recipe-details-section');
     const tooltipBox = document.getElementById('unit-tooltip-box');
-
     let searchTimeout;
+    let conversions = {}; // Will be populated by fetching conversions.json
+
+    // --- Fetch Conversion Data ---
+    try {
+        const response = await fetch('conversions.json');
+        if (!response.ok) throw new Error('Failed to load conversion data.');
+        conversions = await response.json();
+    } catch (error) {
+        console.error(error);
+        // If conversions fail to load, the tooltip feature will gracefully fail
+        // without crashing the rest of the application.
+    }
 
     // --- UNIT CONVERSION TOOLTIP LOGIC ---
-    const conversions = {
-        // Length
-        mm: v => ({ in: (v * 0.0393701).toFixed(2) + ' in', cm: (v * 0.1).toFixed(2) + ' cm' }),
-        cm: v => ({ in: (v * 0.393701).toFixed(2) + ' in', ft: (v * 0.0328084).toFixed(2) + ' ft' }),
-        m: v => ({ ft: (v * 3.28084).toFixed(2) + ' ft', yd: (v * 1.09361).toFixed(2) + ' yd' }),
-        km: v => ({ mi: (v * 0.621371).toFixed(2) + ' mi' }),
-        in: v => ({ cm: (v * 2.54).toFixed(2) + ' cm' }),
-        ft: v => ({ m: (v * 0.3048).toFixed(2) + ' m' }),
-        yd: v => ({ m: (v * 0.9144).toFixed(2) + ' m' }),
-        // Mass
-        mg: v => ({ g: (v / 1000).toFixed(4) + ' g' }),
-        g: v => ({ oz: (v * 0.035274).toFixed(2) + ' oz' }),
-        kg: v => ({ lb: (v * 2.20462).toFixed(2) + ' lb', oz: (v * 35.274).toFixed(2) + ' oz' }),
-        oz: v => ({ g: (v * 28.3495).toFixed(2) + ' g' }),
-        lb: v => ({ kg: (v * 0.453592).toFixed(2) + ' kg' }),
-        // Temperature
-        '°C': v => ({ '°F': (v * 9/5 + 32).toFixed(1) + '°F', K: (parseFloat(v) + 273.15).toFixed(2) + ' K' }),
-        '°F': v => ({ '°C': ((v - 32) * 5/9).toFixed(1) + '°C', K: ((v - 32) * 5/9 + 273.15).toFixed(2) + ' K' }),
-        K: v => ({ '°C': (v - 273.15).toFixed(2) + '°C', '°F': ((v - 273.15) * 9/5 + 32).toFixed(1) + '°F' }),
-        // Volume
-        ml: v => ({ L: (v / 1000).toFixed(3) + ' L', fl_oz: (v * 0.033814).toFixed(2) + ' fl oz' }),
-        mL: v => ({ L: (v / 1000).toFixed(3) + ' L', fl_oz: (v * 0.033814).toFixed(2) + ' fl oz' }),
-        l: v => ({ gal: (v * 0.264172).toFixed(2) + ' gal', ml: (v * 1000) + ' mL' }),
-        L: v => ({ gal: (v * 0.264172).toFixed(2) + ' gal', ml: (v * 1000) + ' mL' })
-    };
-
     const unitRegex = /\b(\d+(?:[.,]\d+)?)(\s?)(cm|mm|m|km|in|ft|yd|kg|g|mg|lb|oz|°C|°F|K|ml|mL|l|L)\b/gi;
 
     function applyTooltips(container) {
-        const walker = document.createTreeWalker(
-            container,
-            NodeFilter.SHOW_TEXT,
-            {
-                acceptNode(node) {
-                    const parent = node.parentElement;
-                    if (!parent || parent.closest('.unit-tooltip')) return NodeFilter.FILTER_REJECT;
-                    if (["SCRIPT","STYLE","CODE","PRE","A","BUTTON"].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
-                    if (parent.closest("a, button")) return NodeFilter.FILTER_REJECT;
-                    return NodeFilter.FILTER_ACCEPT;
-                }
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+                const parent = node.parentElement;
+                if (!parent || parent.closest('.unit-tooltip') || ["SCRIPT","STYLE","CODE","PRE","A","BUTTON"].includes(parent.tagName) || parent.closest("a, button")) return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
             }
-        );
-
-        let node;
-        while (node = walker.nextNode()) {
+        });
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
             const text = node.nodeValue;
             if (unitRegex.test(text)) {
                 const wrapper = document.createElement('span');
-                wrapper.innerHTML = text.replace(unitRegex, (match, value, _, unit) => {
-                    const cleanValue = value.replace(",", ".");
-                    return `<span class="unit-tooltip" data-value="${cleanValue}" data-unit="${unit}">${match}</span>`;
-                });
+                wrapper.innerHTML = text.replace(unitRegex, (match, value, _, unit) => `<span class="unit-tooltip" data-value="${value.replace(",", ".")}" data-unit="${unit}">${match}</span>`);
                 node.parentNode.replaceChild(wrapper, node);
             }
         }
@@ -68,18 +43,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showTooltip(e) {
         const target = e.target;
-        if (!target.classList.contains('unit-tooltip')) return;
+        if (!target.classList.contains('unit-tooltip') || Object.keys(conversions).length === 0) return;
 
         const value = parseFloat(target.dataset.value);
         const unit = target.dataset.unit;
+        const conversionData = conversions[unit];
 
-        if (conversions[unit]) {
-            const converted = conversions[unit](value);
-            const tooltipContent = Object.entries(converted).map(([unit, val]) => `≈ ${val}`).join('<br>');
+        if (conversionData) {
+            let tooltipContent = '';
+            for (const [targetUnit, data] of Object.entries(conversionData)) {
+                let result;
+                if (typeof data === 'number') { // Simple multiplier
+                    result = (value * data).toFixed(2);
+                } else if (data.formula) { // Complex formula (e.g., °F to K)
+                    // This is a safe way to evaluate a simple math formula from JSON
+                    result = new Function('v', `return ${data.formula}`)(value).toFixed(2);
+                } else { // Multiplier and offset (e.g., °C to °F)
+                    result = (value * (data.multiplier || 1) + (data.offset || 0)).toFixed(2);
+                }
+                tooltipContent += `≈ ${result} ${targetUnit}<br>`;
+            }
             tooltipBox.innerHTML = tooltipContent;
             tooltipBox.style.display = 'block';
-
-            // Position tooltip
             const rect = target.getBoundingClientRect();
             tooltipBox.style.left = `${window.scrollX + rect.left}px`;
             tooltipBox.style.top = `${window.scrollY + rect.top - tooltipBox.offsetHeight - 5}px`;
@@ -144,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 recipeDetailsSection.querySelector('.print-recipe-btn').addEventListener('click', () => window.print());
                 recipeDetailsSection.querySelector('#print-list-btn').addEventListener('click', () => printShoppingList(data.title));
 
-                // --- Apply tooltips to the new content ---
                 applyTooltips(recipeDetailsSection);
             }).catch(e => console.error('Fetch Details Error:', e));
     }
@@ -183,5 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     observer.observe(document.body, { childList: true, subtree: true });
 
     searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(fetchRecipes, 300); });
+
+    // Initial fetch of recipes
     fetchRecipes();
 });
