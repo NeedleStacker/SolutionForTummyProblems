@@ -21,6 +21,8 @@ body {
 
 .single-preparation-step {
     margin-bottom: 30px;
+    display: flex;
+    align-items: flex-start; /* Aligns items to the top */
 }
 
 .single-preparation-step h4 {
