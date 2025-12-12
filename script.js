@@ -78,11 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultsSection.style.display = 'none';
                 recipeDetailsSection.style.display = 'block';
 
-                let shoppingList = [], directions = [];
+                let ingredients = [], shoppingList = [], directions = [];
 
                 try {
-                    shoppingList = parseCustomList(data.ner);
-                    // Corrected delimiter for directions
+                    ingredients = parseCustomList(data.ingredients, ',');
+                    shoppingList = parseCustomList(data.ner, ',');
                     directions = parseCustomList(data.directions, ',');
                 } catch (error) {
                     console.error('Error parsing data from database:', error);
@@ -91,12 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const directionsHtml = directions.map((step, index) => step ? `
-                    <div class="single-preparation-step d-flex">
+                    <div class="single-preparation-step">
                         <h4>${String(index + 1).padStart(2, '0')}.</h4>
                         <p>${step}</p>
                     </div>` : '').join('');
 
-                const ingredientsHtml = shoppingList.map((item, index) => item ? `
+                const ingredientsListHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
+
+                const shoppingListHtml = shoppingList.map((item, index) => item ? `
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="customCheck${index}">
                         <label class="custom-control-label" for="customCheck${index}">${item}</label>
@@ -104,23 +106,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 recipeDetailsSection.innerHTML = `
                     <div class="container">
-                        <button class="btn btn-primary back-button mb-4">← Back to Search</button>
+                        <div class="d-flex justify-content-between mb-4">
+                            <button class="btn btn-primary back-button">← Back to Search</button>
+                            <button class="btn btn-info print-recipe-btn">Print Recipe</button>
+                        </div>
                         <div class="row">
                             <div class="col-12"><div class="receipe-headline my-5"><h2>${data.title}</h2></div></div>
                         </div>
                         <div class="row">
                             <div class="col-12 col-lg-8">${directionsHtml}</div>
                             <div class="col-12 col-lg-4">
+                                <div class="ingredients mb-4">
+                                    <h4>Ingredients</h4>
+                                    <ul>${ingredientsListHtml}</ul>
+                                </div>
                                 <div class="ingredients">
                                     <h4>Shopping List</h4>
-                                    ${ingredientsHtml}
-                                    <button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Shopping List</button>
+                                    ${shoppingListHtml}
+                                    <button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected Items</button>
                                 </div>
                             </div>
                         </div>
                     </div>`;
 
                 recipeDetailsSection.querySelector('.back-button').addEventListener('click', showSearchView);
+                recipeDetailsSection.querySelector('.print-recipe-btn').addEventListener('click', () => window.print());
                 recipeDetailsSection.querySelector('#print-list-btn').addEventListener('click', () => printShoppingList(data.title));
             })
             .catch(error => {
@@ -136,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(cb => cb.nextElementSibling.textContent);
 
         if (selectedItems.length === 0) {
-            alert('Please select ingredients to print.');
+            alert('Please select items from the shopping list to print.');
             return;
         }
 
