@@ -20,7 +20,7 @@ body {
 }
 
 .single-preparation-step {
-    margin-bottom: 30px;
+    margin-bottom: 20px; /* Reduced margin for print */
     display: flex;
     align-items: flex-start; /* Aligns items to the top */
 }
@@ -108,23 +108,64 @@ body {
     margin-bottom: 2rem;
 }
 
-/* Print-specific styles */
+/* --- ADVANCED PRINT STYLES --- */
 @media print {
+    @page {
+        size: A4;
+        margin: 2cm;
+    }
+
     body {
         background-color: #fff;
+        font-size: 12pt;
     }
-    .back-button, .print-recipe-btn, #print-list-btn, .search-bar, .custom-control-input, .custom-control-label::before, .custom-control-label::after {
+
+    /* Hide all non-recipe elements */
+    .back-button, .print-recipe-btn, #print-list-btn, .search-bar, .custom-control-input, .custom-control-label::before, .custom-control-label::after, #search-section, #results-section {
         display: none !important;
     }
-    .container, .ingredients {
+
+    /* Show the recipe details section and make it the only thing visible */
+    #recipe-details-section {
+        display: block !important;
+    }
+
+    .container, .container-fluid, .ingredients {
         box-shadow: none;
         border: none;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
+
+    .row {
+        display: block; /* Stack elements vertically */
+    }
+
     .col-lg-8, .col-lg-4 {
-        width: 100% !important; /* Make columns full width on paper */
+        width: 100% !important;
+        float: none;
     }
+
+    .receipe-headline h2 {
+        font-size: 20pt;
+        text-align: center;
+        margin-bottom: 1cm;
+    }
+
+    .ingredients {
+        page-break-inside: avoid; /* Try to keep ingredients block from splitting across pages */
+    }
+
     a {
         text-decoration: none;
         color: #000;
+    }
+
+    /* Ensure checkboxes in shopping list are just text for printing */
+    .custom-control-label::before {
+        content: "☐ ";
+        border: none;
     }
 }
