@@ -3,7 +3,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchInputTitle = document.getElementById('search-input-title');
     const searchInputIngredients = document.getElementById('search-input-ingredients');
     const searchInputShopping = document.getElementById('search-input-shopping');
-    const searchButton = document.getElementById('search-button');
+
+    const searchButtonTitle = document.getElementById('search-button-title');
+    const searchButtonIngredients = document.getElementById('search-button-ingredients');
+    const searchButtonShopping = document.getElementById('search-button-shopping');
 
     const searchSection = document.getElementById('search-section');
     const resultsSection = document.getElementById('results-section');
@@ -48,7 +51,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (let i = 0; i < textNodes.length; i++) {
             const node = textNodes[i];
 
-            // Case 1: Full unit in one node (e.g., "250ml")
             let match;
             while ((match = fullUnitRegex.exec(node.nodeValue)) !== null) {
                 const range = document.createRange();
@@ -61,7 +63,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // Case 2: Number in one node, unit in the next (e.g., "<b>250</b> ml")
             if (i < textNodes.length - 1) {
                 const numNode = textNodes[i];
                 const unitNode = textNodes[i + 1];
@@ -97,7 +98,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             span.dataset.value = rep.value.replace(",", ".");
             span.dataset.unit = rep.unit;
             try {
-                // Check if the range is still valid before wrapping
                 if (rep.range.startContainer.isConnected && rep.range.endContainer.isConnected) {
                     rep.range.surroundContents(span);
                 }
@@ -150,17 +150,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
     };
 
-    function fetchRecipes() {
-        const title = searchInputTitle.value.trim();
-        const ingredients = searchInputIngredients.value.trim();
-        const shopping_list = searchInputShopping.value.trim();
-
-        const params = new URLSearchParams();
-        if (title) params.append('title', title);
-        if (ingredients) params.append('ingredients', ingredients);
-        if (shopping_list) params.append('shopping_list', shopping_list);
-
-        const queryString = params.toString();
+    function performSearch(params) {
+        const queryString = new URLSearchParams(params).toString();
         const url = `api.php${queryString ? '?' + queryString : ''}`;
 
         fetch(url).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP error! status: ${r.status}`)))
@@ -233,12 +224,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         let g = parseInt(color.substring(2, 4), 16);
         let b = parseInt(color.substring(4, 6), 16);
 
-        // Make the color lighter by mixing with white
         r = Math.floor((r + 255) / 2);
         g = Math.floor((g + 255) / 2);
         b = Math.floor((b + 255) / 2);
 
-        return `rgba(${r}, ${g}, ${b}, 0.85)`; // Updated opacity
+        return `rgba(${r}, ${g}, ${b}, 0.85)`;
     };
 
     const observer = new MutationObserver((mutations) => {
@@ -253,18 +243,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Event listener for the new search button
-    searchButton.addEventListener('click', fetchRecipes);
-
-    // Add Enter key press listeners for convenience
-    [searchInputTitle, searchInputIngredients, searchInputShopping].forEach(input => {
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                fetchRecipes();
-            }
-        });
+    // --- EVENT LISTENERS ---
+    searchButtonTitle.addEventListener('click', () => {
+        const title = searchInputTitle.value.trim();
+        if (title) performSearch({ title: title });
     });
 
-    // Initial fetch of recipes (random)
-    fetchRecipes();
+    searchButtonIngredients.addEventListener('click', () => {
+        const ingredients = searchInputIngredients.value.trim();
+        if (ingredients) performSearch({ ingredients: ingredients });
+    });
+
+    searchButtonShopping.addEventListener('click', () => {
+        const shopping_list = searchInputShopping.value.trim();
+        if (shopping_list) performSearch({ shopping_list: shopping_list });
+    });
+
+    searchInputTitle.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchButtonTitle.click();
+    });
+
+    searchInputIngredients.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchButtonIngredients.click();
+    });
+
+    searchInputShopping.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchButtonShopping.click();
+    });
+
+    // Initial fetch of random recipes
+    performSearch({});
 });
