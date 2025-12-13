@@ -1,11 +1,15 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // --- Global Variables & DOM Elements ---
-    const searchInput = document.getElementById('search-input');
+    const searchInputTitle = document.getElementById('search-input-title');
+    const searchInputIngredients = document.getElementById('search-input-ingredients');
+    const searchInputShopping = document.getElementById('search-input-shopping');
+    const searchButton = document.getElementById('search-button');
+
     const searchSection = document.getElementById('search-section');
     const resultsSection = document.getElementById('results-section');
     const recipeDetailsSection = document.getElementById('recipe-details-section');
     const tooltipBox = document.getElementById('unit-tooltip-box');
-    let searchTimeout;
+
     let conversions = {}; // Will be populated by fetching conversions.json
 
     // --- Fetch Conversion Data ---
@@ -147,9 +151,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     function fetchRecipes() {
-        const search = searchInput.value;
-        let url = `api.php?`;
-        if (search) url += `search=${search}`;
+        const title = searchInputTitle.value.trim();
+        const ingredients = searchInputIngredients.value.trim();
+        const shopping_list = searchInputShopping.value.trim();
+
+        const params = new URLSearchParams();
+        if (title) params.append('title', title);
+        if (ingredients) params.append('ingredients', ingredients);
+        if (shopping_list) params.append('shopping_list', shopping_list);
+
+        const queryString = params.toString();
+        const url = `api.php${queryString ? '?' + queryString : ''}`;
+
         fetch(url).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP error! status: ${r.status}`)))
             .then(data => {
                 if (data.error) { console.error('API Error:', data.error); return; }
@@ -240,8 +253,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    searchInput.addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(fetchRecipes, 300); });
+    // Event listener for the new search button
+    searchButton.addEventListener('click', fetchRecipes);
 
-    // Initial fetch of recipes
+    // Add Enter key press listeners for convenience
+    [searchInputTitle, searchInputIngredients, searchInputShopping].forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                fetchRecipes();
+            }
+        });
+    });
+
+    // Initial fetch of recipes (random)
     fetchRecipes();
 });

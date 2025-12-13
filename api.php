@@ -16,30 +16,58 @@ set_error_handler(function($severity, $message, $file, $line) {
 
 try {
     // Sanitize inputs
-    $search = isset($_GET['search']) ? $_GET['search'] : '';
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $title_search = isset($_GET['title']) ? trim($_GET['title']) : '';
+    $ingredients_search = isset($_GET['ingredients']) ? trim($_GET['ingredients']) : '';
+    $shopping_list_search = isset($_GET['shopping_list']) ? trim($_GET['shopping_list']) : '';
 
     $sql = "";
     $types = '';
     $params = [];
 
     if ($id > 0) {
+        // Fetch a single recipe by ID
         $sql = "SELECT * FROM recipes WHERE id = ?";
         $types = "i";
         $params[] = $id;
     } else {
+        // Build a dynamic search query
         $baseSql = "SELECT id, title, ingredients, ner, site FROM recipes";
         $conditions = [];
 
-        if (!empty($search)) {
-            $conditions[] = "(title LIKE ? OR ingredients LIKE ? OR ner LIKE ?)";
-            $searchTerm = "%" . $search . "%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
-            $types .= 'sss';
+        // Add title condition
+        if (!empty($title_search)) {
+            $conditions[] = "title LIKE ?";
+            $params[] = "%" . $title_search . "%";
+            $types .= 's';
+        }
+
+        // Add ingredients conditions
+        if (!empty($ingredients_search)) {
+            $ingredients = array_filter(array_map('trim', explode(',', $ingredients_search)));
+            foreach ($ingredients as $ingredient) {
+                $conditions[] = "ingredients LIKE ?";
+                $params[] = "%" . $ingredient . "%";
+                $types .= 's';
+            }
+        }
+
+        // Add shopping list (ner) conditions
+        if (!empty($shopping_list_search)) {
+            $shopping_items = array_filter(array_map('trim', explode(',', $shopping_list_search)));
+            foreach ($shopping_items as $item) {
+                $conditions[] = "ner LIKE ?";
+                $params[] = "%" . $item . "%";
+                $types .= 's';
+            }
+        }
+
+        // Combine conditions if any exist
+        if (!empty($conditions)) {
             $baseSql .= " WHERE " . implode(" AND ", $conditions);
-            $baseSql .= " LIMIT 200"; // Increased limit for search
+            $baseSql .= " LIMIT 200"; // Apply a limit to search results
         } else {
-            // If no search, order randomly and limit to 200
+            // If no search criteria, get random recipes
             $baseSql .= " ORDER BY RAND() LIMIT 200";
         }
 
@@ -72,12 +100,7 @@ try {
     $stmt->close();
     $conn->close();
 
-    $output = null;
-    if ($id > 0) {
-        $output = $recipes[0] ?? null;
-    } else {
-        $output = $recipes;
-    }
+    $output = ($id > 0) ? ($recipes[0] ?? null) : $recipes;
 
     $json_output = json_encode($output);
     if (json_last_error() !== JSON_ERROR_NONE) {
