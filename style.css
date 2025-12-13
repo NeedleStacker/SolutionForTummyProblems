@@ -1,12 +1,33 @@
 /* Custom Styles for Recipe Search */
 
 body {
-    background-color: #f8f9fa;
+    background-image: url('https://picsum.photos/1920/1080');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+}
+
+.search-container {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+}
+
+.recipe-main-content {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
 }
 
 .receipe-headline h2 {
     font-size: 2.5rem;
     font-weight: 300;
+    color: white;
 }
 
 #results-section .recipe-card {
