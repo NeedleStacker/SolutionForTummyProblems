@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const ingredientsHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
                 const shoppingListHtml = shoppingList.map((item, i) => item ? `<div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="customCheck${i}"><label class="custom-control-label" for="customCheck${i}">${item}</label></div>` : '').join('');
 
-                recipeDetailsSection.innerHTML = `<div class="container"><div class="d-flex justify-content-between mb-4 action-buttons"><button class="btn btn-primary back-button">← Back</button><button class="btn btn-info print-recipe-btn">Print</button></div><div class="row"><div class="col-12"><div class="receipe-headline my-5"><h2>${data.title}</h2></div></div></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div>`;
+                recipeDetailsSection.innerHTML = `<div class="container"><div class="d-flex justify-content-between mb-4 action-buttons"><button class="btn btn-primary back-button">← Back</button><button class="btn btn-info print-recipe-btn">Print</button></div><div class="row"><div class="col-12"><div class="recipe-main-content"><div class="receipe-headline my-5"><h2>${data.title}</h2></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div></div></div></div>`;
 
                 recipeDetailsSection.querySelector('.back-button').addEventListener('click', showSearchView);
                 recipeDetailsSection.querySelector('.print-recipe-btn').addEventListener('click', () => window.print());
@@ -210,9 +210,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const stringToColor = (str) => {
-        let hash = 0; str.split('').forEach(char => hash = char.charCodeAt(0) + ((hash << 5) - hash));
-        let color = '#'; for (let i = 0; i < 3; i++) color += ('00' + Math.min(255, (hash >> (i * 8)) & 0xFF + 128).toString(16)).slice(-2);
-        return color;
+        let hash = 0;
+        str.split('').forEach(char => {
+            hash = char.charCodeAt(0) + ((hash << 5) - hash);
+        });
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        const color = "00000".substring(0, 6 - c.length) + c;
+        const r = parseInt(color.substring(0, 2), 16);
+        const g = parseInt(color.substring(2, 4), 16);
+        const b = parseInt(color.substring(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, 0.8)`;
     };
 
     const observer = new MutationObserver((mutations) => {
