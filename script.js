@@ -36,9 +36,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const rangesToWrap = [];
-        const fullUnitRegex = /(\d+(?:[.,]\d+)?)(\s*)(pounds|pound|ounce|ounces|inch|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/gi;
+        const fullUnitRegex = /(\d+(?:[.,]\d+)?)(\s*)(pounds|pound|ounce|ounces|inch|degrees F|degrees C|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/gi;
         const numberRegex = /(\d+(?:[.,]\d+)?)\s*$/;
-        const unitOnlyRegex = /^\s*(pounds|pound|ounce|ounces|inch|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/i;
+        const unitOnlyRegex = /^\s*(pounds|pound|ounce|ounces|inch|degrees F|degrees C|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/i;
 
         // Pass 1: Find all potential matches
         for (let i = 0; i < textNodes.length; i++) {
@@ -216,10 +216,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
         const color = "00000".substring(0, 6 - c.length) + c;
-        const r = parseInt(color.substring(0, 2), 16);
-        const g = parseInt(color.substring(2, 4), 16);
-        const b = parseInt(color.substring(4, 6), 16);
-        return `rgba(${r}, ${g}, ${b}, 0.8)`;
+        let r = parseInt(color.substring(0, 2), 16);
+        let g = parseInt(color.substring(2, 4), 16);
+        let b = parseInt(color.substring(4, 6), 16);
+
+        // Make the color lighter by mixing with white
+        r = Math.floor((r + 255) / 2);
+        g = Math.floor((g + 255) / 2);
+        b = Math.floor((b + 255) / 2);
+
+        return `rgba(${r}, ${g}, ${b}, 0.85)`; // Updated opacity
     };
 
     const observer = new MutationObserver((mutations) => {

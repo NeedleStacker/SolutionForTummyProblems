@@ -16,6 +16,7 @@ body {
     border-radius: 10px;
     color: white;
     margin-top: 50px;
+    margin-bottom: 30px; /* Added space between search and results */
 }
 
 .recipe-main-content {
@@ -63,7 +64,8 @@ body {
 
 
 .ingredients {
-    background-color: #ffffff;
+    background-color: #000000; /* Changed background to black */
+    color: #ffffff; /* Changed text to white for readability */
     padding: 30px;
     border-radius: 5px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
@@ -71,8 +73,8 @@ body {
 
 #ingredients-list,
 #shopping-list {
-    background-color: #ffffff;
-    color: #333;
+    background-color: #000000; /* Changed background to black */
+    color: #ffffff; /* Changed text to white for readability */
     padding: 20px;
     border-radius: 5px;
     margin-bottom: 20px;
@@ -155,7 +157,7 @@ body {
     }
 
     /* Hide non-essential elements */
-    .action-buttons, #print-list-btn, #search-section, #results-section {
+    .action-buttons, #print-list-btn, #search-section, #results-section, .floating-btn {
         display: none !important;
     }
 
@@ -224,4 +226,35 @@ body {
   border-bottom: 1px dotted #888;
   cursor: help;
   position: relative; /* Needed for positioning context */
+}
+
+/* --- FLOATING ACTION BUTTON --- */
+.floating-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 58px; /* Vertically center content */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    z-index: 1050; /* High z-index to stay on top */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.floating-btn img {
+    width: 30px;
+    height: 30px;
 }
