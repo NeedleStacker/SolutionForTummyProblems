@@ -15,7 +15,9 @@ body {
 }
 
 .search-container {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-image: url('assets/search_bg.jpg');
+    background-size: cover;
+    background-position: center;
     padding: 20px;
     border-radius: 10px;
     color: white;
@@ -28,12 +30,22 @@ body {
     padding: 20px;
     border-radius: 10px;
     color: white;
+    margin-bottom: 50px; /* Added bottom margin */
 }
 
 .receipe-headline h2 {
     font-size: 2.5rem;
     font-weight: 300;
     color: white;
+    display: inline-flex;
+    align-items: center;
+}
+
+.icon-search-left::before,
+.icon-search-right::before {
+    content: '🔍'; /* Unicode magnifying glass */
+    font-size: 2rem;
+    margin: 0 15px;
 }
 
 #results-section .recipe-card {
