@@ -1,5 +1,9 @@
 /* Custom Styles for Recipe Search */
 
+html {
+    box-shadow: inset 0 0 0 2000px rgb(255 255 255 / 60%);
+}
+
 body {
     background-image: url('https://picsum.photos/1920/1080');
     background-size: cover;
@@ -52,7 +56,7 @@ body {
 .single-preparation-step h4 {
     font-size: 1rem;      /* Same size as paragraph text */
     font-weight: 700;     /* Make it bold */
-    color: #007bff;
+    color: cyan;
     margin-right: 15px;   /* Space between number and text */
     padding-top: 0;       /* Remove padding that could cause misalignment */
     flex-shrink: 0;       /* Prevent number from shrinking */
@@ -231,8 +235,8 @@ body {
 /* --- FLOATING ACTION BUTTON --- */
 .floating-btn {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    top: 30px;
+    left: 30px;
     width: 60px;
     height: 60px;
     background-color: #007bff;
