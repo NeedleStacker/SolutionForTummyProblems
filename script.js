@@ -15,30 +15,92 @@ document.addEventListener('DOMContentLoaded', async () => {
         conversions = await response.json();
     } catch (error) {
         console.error(error);
-        // If conversions fail to load, the tooltip feature will gracefully fail
-        // without crashing the rest of the application.
     }
 
     // --- UNIT CONVERSION TOOLTIP LOGIC ---
-    const unitRegex = /(\d+(?:[.,]\d+)?)(\s?)(pounds|pound|ounce|ounces|inch|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?=[)\s.,]|$)/gi;
-
     function applyTooltips(container) {
-        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+        const nodeFilter = {
             acceptNode(node) {
                 const parent = node.parentElement;
-                if (!parent || parent.closest('.unit-tooltip') || ["SCRIPT","STYLE","CODE","PRE","A","BUTTON"].includes(parent.tagName) || parent.closest("a, button")) return NodeFilter.FILTER_REJECT;
+                if (!parent || parent.closest('.unit-tooltip, script, style, code, pre, a, button')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
                 return NodeFilter.FILTER_ACCEPT;
             }
-        });
+        };
+
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, nodeFilter);
+        const textNodes = [];
         while (walker.nextNode()) {
-            const node = walker.currentNode;
-            const text = node.nodeValue;
-            if (unitRegex.test(text)) {
-                const wrapper = document.createElement('span');
-                wrapper.innerHTML = text.replace(unitRegex, (match, value, _, unit) => `<span class="unit-tooltip" data-value="${value.replace(",", ".")}" data-unit="${unit}">${match}</span>`);
-                node.parentNode.replaceChild(wrapper, node);
+            textNodes.push(walker.currentNode);
+        }
+
+        const rangesToWrap = [];
+        const fullUnitRegex = /(\d+(?:[.,]\d+)?)(\s*)(pounds|pound|ounce|ounces|inch|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/gi;
+        const numberRegex = /(\d+(?:[.,]\d+)?)\s*$/;
+        const unitOnlyRegex = /^\s*(pounds|pound|ounce|ounces|inch|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/i;
+
+        // Pass 1: Find all potential matches
+        for (let i = 0; i < textNodes.length; i++) {
+            const node = textNodes[i];
+
+            // Case 1: Full unit in one node (e.g., "250ml")
+            let match;
+            while ((match = fullUnitRegex.exec(node.nodeValue)) !== null) {
+                const range = document.createRange();
+                range.setStart(node, match.index);
+                range.setEnd(node, match.index + match[0].length);
+                rangesToWrap.push({
+                    range: range,
+                    value: match[1],
+                    unit: match[3]
+                });
+            }
+
+            // Case 2: Number in one node, unit in the next (e.g., "<b>250</b> ml")
+            if (i < textNodes.length - 1) {
+                const numNode = textNodes[i];
+                const unitNode = textNodes[i + 1];
+
+                const numMatch = numNode.nodeValue.match(numberRegex);
+                const unitMatch = unitNode.nodeValue.match(unitOnlyRegex);
+
+                if (numMatch && unitMatch) {
+                    const adjacencyRange = document.createRange();
+                    adjacencyRange.setStart(numNode, numNode.nodeValue.length);
+                    adjacencyRange.setEnd(unitNode, 0);
+
+                    if (adjacencyRange.toString().trim() === '') {
+                        const wrapRange = document.createRange();
+                        wrapRange.setStart(numNode, numNode.nodeValue.length - numMatch[0].length);
+                        wrapRange.setEnd(unitNode, unitMatch[0].length);
+
+                        rangesToWrap.push({
+                            range: wrapRange,
+                            value: numMatch[1],
+                            unit: unitMatch[1]
+                        });
+                        i++;
+                    }
+                }
             }
         }
+
+        // Pass 2: Apply the wraps from back to front to avoid conflicts
+        rangesToWrap.reverse().forEach(rep => {
+            const span = document.createElement('span');
+            span.className = 'unit-tooltip';
+            span.dataset.value = rep.value.replace(",", ".");
+            span.dataset.unit = rep.unit;
+            try {
+                // Check if the range is still valid before wrapping
+                if (rep.range.startContainer.isConnected && rep.range.endContainer.isConnected) {
+                    rep.range.surroundContents(span);
+                }
+            } catch (e) {
+                console.warn("Could not wrap range for unit conversion, likely due to overlap.", e);
+            }
+        });
     }
 
     function showTooltip(e) {
@@ -53,12 +115,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             let tooltipContent = '';
             for (const [targetUnit, data] of Object.entries(conversionData)) {
                 let result;
-                if (typeof data === 'number') { // Simple multiplier
+                if (typeof data === 'number') {
                     result = (value * data).toFixed(2);
-                } else if (data.formula) { // Complex formula (e.g., °F to K)
-                    // This is a safe way to evaluate a simple math formula from JSON
+                } else if (data.formula) {
                     result = new Function('v', `return ${data.formula}`)(value).toFixed(2);
-                } else { // Multiplier and offset (e.g., °C to °F)
+                } else {
                     result = (value * (data.multiplier || 1) + (data.offset || 0)).toFixed(2);
                 }
                 tooltipContent += `≈ ${result} ${targetUnit}<br>`;
