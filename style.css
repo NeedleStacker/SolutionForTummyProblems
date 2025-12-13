@@ -15,6 +15,7 @@ body {
     padding: 20px;
     border-radius: 10px;
     color: white;
+    margin-top: 50px;
 }
 
 .recipe-main-content {
@@ -66,6 +67,15 @@ body {
     padding: 30px;
     border-radius: 5px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+#ingredients-list,
+#shopping-list {
+    background-color: #ffffff;
+    color: #333;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
 }
 
 .ingredients h4 {
