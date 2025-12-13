@@ -28,23 +28,25 @@ This is a simple web application that allows users to search for recipes from a 
 ## Application Setup
 
 1.  **Configure database credentials:**
-    -   Open `api.php` in a text editor.
-    -   On lines 5-7, replace the placeholder values for `$servername`, `$username`, and `$password` with your actual MySQL database credentials.
+    -   Open `config.php` in a text editor.
+    -   Replace the placeholder values for `$servername`, `$username`, `$password`, and `$dbname` with your actual MySQL database credentials.
 
 2.  **Deployment:**
-    -   Upload all the project files (`index.html`, `style.css`, `script.js`, `api.php`, `schema.sql`, and the `SQLs` directory) to your shared hosting server.
+    -   Upload all the project files (`index.html`, `style.css`, `script.js`, `api.php`, `config.php`, `schema.sql`, and the `SQLs` directory) to your shared hosting server.
     -   Ensure your web server (e.g., Apache) is configured to serve PHP files.
 
 ## API Endpoints
 
-### Get All Recipes
+### Search Recipes
 
 -   **URL:** `/api.php`
 -   **Method:** `GET`
 -   **Query Parameters:**
-    -   `search` (optional): Search term for title, ingredients, or shopping list.
-    -   `site` (optional): Filter recipes by the source website.
--   **Example:** `https://yourdomain.com/api.php?search=chicken&site=allrecipes.com`
+    -   `title` (optional): A search term to find in the recipe title.
+    -   `ingredients` (optional): A comma-separated list of ingredients. The search will return recipes containing *all* specified ingredients.
+    -   `shopping_list` (optional): A comma-separated list of shopping list items (NER). The search will return recipes containing *all* specified items.
+-   **Example:** `https://yourdomain.com/api.php?title=potatoes&ingredients=garlic,salt`
+-   **Note:** If no search parameters are provided, the API will return a random selection of recipes.
 
 ### Get Recipe by ID
 
