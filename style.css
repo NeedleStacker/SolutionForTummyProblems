@@ -22,8 +22,74 @@ body {
     border-radius: 10px;
     color: white;
     margin-top: 50px;
-    margin-bottom: 30px; /* Added space between search and results */
+    margin-bottom: 30px;
 }
+
+/* --- NEW SEARCH BAR STYLES --- */
+.search-bar {
+    padding: 15px 0;
+}
+
+.custom-search-input-group {
+    position: relative;
+}
+
+.custom-search-input-group::before {
+    content: '🔍';
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+    font-size: 1rem;
+    z-index: 3;
+}
+
+.custom-search-input-group .form-control {
+    background-color: #383838;
+    border: 1px solid #2d2d2d;
+    color: #f0f0f0;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+    border-radius: 25px;
+    padding-left: 45px; /* Space for the icon */
+    transition: all 0.3s ease;
+    height: calc(1.5em + .75rem + 10px); /* Taller input */
+}
+
+.custom-search-input-group .form-control:focus {
+    background-color: #444;
+    border-color: #555;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 0 0 3px rgba(80, 130, 255, 0.4);
+    color: #fff;
+}
+
+.custom-search-input-group .form-control::placeholder {
+    color: #999;
+}
+
+#search-button.btn-primary {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    color: #333;
+    font-weight: bold;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    height: calc(1.5em + .75rem + 10px); /* Match input height */
+}
+
+#search-button.btn-primary:hover {
+    background-color: #fff;
+    border-color: #aaa;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#search-button.btn-primary:active, #search-button.btn-primary:focus {
+    background-color: #e0e0e0 !important;
+    border-color: #999 !important;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2) !important;
+}
+/* --- END NEW SEARCH BAR STYLES --- */
 
 .recipe-main-content {
     background-color: rgba(0, 0, 0, 0.5);
