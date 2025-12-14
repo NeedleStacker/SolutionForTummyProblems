@@ -93,11 +93,25 @@ body {
     margin-bottom: 20px;
 }
 
-.receipe-headline .recipe-icon {
-    width: 32px;
-    height: 32px;
+.recipe-icon-link {
+    display: inline-block;
+    padding: 10px;
+    background-color: #4CAF50; /* Example color */
+    border-radius: 50%;
     margin-right: 15px;
+    transition: background-color 0.3s;
     vertical-align: middle;
+}
+
+.recipe-icon-link:hover {
+    background-color: #45a049;
+}
+
+.receipe-headline .recipe-icon {
+    width: 128px;
+    height: 128px;
+    vertical-align: middle;
+    filter: invert(1); /* Invert colors to make it visible on dark background */
 }
 
 .receipe-headline h2 {
@@ -107,6 +121,13 @@ body {
     margin: 0;
     display: inline-block;
     vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+    .receipe-headline .recipe-icon {
+        width: 64px;
+        height: 64px;
+    }
 }
 
 .icon-search-left::before,
