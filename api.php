@@ -31,6 +31,8 @@ try {
         $sql = "SELECT * FROM recipes WHERE id = ?";
         $types = "i";
         $params[] = $id;
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
     } else {
         // Build a dynamic search query
         $baseSql = "SELECT id, title, ingredients, ner, site FROM recipes";
@@ -58,15 +60,30 @@ try {
         }
 
         if (!empty($conditions)) {
-            $baseSql .= " WHERE " . implode(" AND ", $conditions);
-            $baseSql .= " LIMIT 200";
+            $sql = $baseSql . " WHERE " . implode(" AND ", $conditions) . " LIMIT 200";
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
+            $stmt->bind_param($types, ...$params);
         } else {
-            $baseSql .= " ORDER BY RAND() LIMIT 200";
+            // Optimized random fetch
+            // 1. Get the max ID
+            $maxIdResult = $conn->query("SELECT MAX(id) as max_id FROM recipes");
+            if (!$maxIdResult) send_json_error("Could not get max id: " . $conn->error);
+            $max_id = $maxIdResult->fetch_assoc()['max_id'];
+            $maxIdResult->free();
+
+            // 2. Pick a random starting point
+            $random_id = rand(1, $max_id - 200); // Ensure there's room for 200 records
+
+            // 3. Fetch 200 records from that point
+            $sql = $baseSql . " WHERE id >= ? LIMIT 200";
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) send_json_error("SQL prepare failed for random fetch: " . $conn->error);
+            $stmt->bind_param("i", $random_id);
         }
-        $sql = $baseSql;
     }
 
-    $stmt = $conn->prepare($sql);
+    if (!$stmt) send_json_error("Statement not prepared.");
     if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
     if (!empty($types)) $stmt->bind_param($types, ...$params);
     if (!$stmt->execute()) send_json_error("SQL execute failed: " . $stmt->error);
