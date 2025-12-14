@@ -197,7 +197,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const shoppingList = parseCustomList(data.ner, ',');
                 const directions = parseCustomList(data.directions, '.,');
 
-                const imageHtml = `<img src="assets/search.png" alt="Recipe icon" class="recipe-icon">`;
+                const googleImagesUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(data.title)}`;
+                const imageHtml = `<a href="${googleImagesUrl}" target="_blank" class="recipe-icon-link"><img src="assets/search.png" alt="Search for recipe images" class="recipe-icon"></a>`;
                 const directionsHtml = directions.map((step, i) => step ? `<div class="single-preparation-step"><h4>${String(i + 1).padStart(2, '0')}.</h4><p>${step}</p></div>` : '').join('');
                 const ingredientsHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
                 const shoppingListHtml = shoppingList.map((item, i) => item ? `<div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="customCheck${i}"><label class="custom-control-label" for="customCheck${i}">${item}</label></div>` : '').join('');
