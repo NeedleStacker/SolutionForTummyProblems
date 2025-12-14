@@ -94,9 +94,10 @@ body {
     position: sticky;
     top: 20px; /* Sticks 20px from the top */
     z-index: 1020; /* Ensures it's above content but below modals */
-    background-color: rgba(0, 0, 0, 0.5); /* Optional: to prevent text overlap */
-    padding: 10px 0; /* Optional: adds some spacing */
+    background-color: rgba(0, 0, 0, 1);
+    padding: 10px 10px;
     border-radius: 10px;
+    margin: 20px 0;
 }
 
 .receipe-headline {
@@ -347,7 +348,7 @@ body {
 /* --- FLOATING ACTION BUTTON --- */
 .floating-btn {
     position: fixed;
-    top: 30px;
+    bottom: 30px;
     left: 30px;
     width: 90px;
     height: 90px;
