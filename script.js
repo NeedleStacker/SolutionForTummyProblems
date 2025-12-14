@@ -35,6 +35,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- UNIT CONVERSION TOOLTIP LOGIC ---
+
+    function parseNumberString(numStr) {
+        numStr = numStr.trim().replace(",", ".");
+        if (numStr.includes(' ')) { // Handle mixed numbers like "1 1/2"
+            const parts = numStr.split(' ');
+            const integer = parseInt(parts[0], 10);
+            const fraction = parts[1];
+            if (fraction.includes('/')) {
+                const fracParts = fraction.split('/');
+                return integer + (parseInt(fracParts[0], 10) / parseInt(fracParts[1], 10));
+            }
+        } else if (numStr.includes('/')) { // Handle simple fractions like "3/4"
+            const parts = numStr.split('/');
+            return parseInt(parts[0], 10) / parseInt(parts[1], 10);
+        }
+        return parseFloat(numStr); // Handle decimals and integers
+    }
+
     function applyTooltips(container) {
         const nodeFilter = {
             acceptNode(node) {
@@ -53,9 +71,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const rangesToWrap = [];
-        const fullUnitRegex = /(\d+(?:[.,]\d+)?)(\s*)(pounds|pound|ounce|ounces|inch|degrees F|degrees C|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/gi;
-        const numberRegex = /(\d+(?:[.,]\d+)?)\s*$/;
-        const unitOnlyRegex = /^\s*(pounds|pound|ounce|ounces|inch|degrees F|degrees C|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L)(?![a-zA-Z])/i;
+        const units = 'pounds|pound|ounce|ounces|inch|degrees F|degrees C|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L';
+        const numberPattern = '(?:\\d+\\s+)?\\d+(?:(?:[.,/])\\d+)?'; // Handles "1 1/2", "3/4", "1.5", "1"
+        const fullUnitRegex = new RegExp(`(${numberPattern})(\\s*|-|)(\\b(?:${units})\\b)(?![a-zA-Z])`, 'gi');
+        const numberRegex = new RegExp(`(${numberPattern})\\s*$`);
+        const unitOnlyRegex = new RegExp(`^\\s*(\\b(?:${units})\\b)(?![a-zA-Z])`, 'i');
 
         // Pass 1: Find all potential matches
         for (let i = 0; i < textNodes.length; i++) {
@@ -105,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         rangesToWrap.reverse().forEach(rep => {
             const span = document.createElement('span');
             span.className = 'unit-tooltip';
-            span.dataset.value = rep.value.replace(",", ".");
+            span.dataset.value = rep.value;
             span.dataset.unit = rep.unit;
             try {
                 if (rep.range.startContainer.isConnected && rep.range.endContainer.isConnected) {
@@ -121,7 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const target = e.target;
         if (!target.classList.contains('unit-tooltip') || Object.keys(conversions).length === 0) return;
 
-        const value = parseFloat(target.dataset.value);
+        const value = parseNumberString(target.dataset.value);
         const unit = target.dataset.unit;
         const conversionData = conversions[unit];
 
