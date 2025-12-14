@@ -65,45 +65,62 @@ try {
             if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
             $stmt->bind_param($types, ...$params);
         } else {
-            // Optimized random fetch
-            // 1. Get the max ID
-            $maxIdResult = $conn->query("SELECT MAX(id) as max_id FROM recipes");
-            if (!$maxIdResult) send_json_error("Could not get max id: " . $conn->error);
-            $max_id = $maxIdResult->fetch_assoc()['max_id'];
-            $maxIdResult->free();
+            // Truly random fetch, optimized for performance
+            // 1. Get all recipe IDs
+            $idsResult = $conn->query("SELECT id FROM recipes");
+            if (!$idsResult) send_json_error("Could not fetch recipe IDs: " . $conn->error);
 
-            // 2. Pick a random starting point
-            $random_id = rand(1, $max_id - 200); // Ensure there's room for 200 records
+            $ids = [];
+            while($row = $idsResult->fetch_assoc()) {
+                $ids[] = $row['id'];
+            }
+            $idsResult->free();
 
-            // 3. Fetch 200 records from that point
-            $sql = $baseSql . " WHERE id >= ? LIMIT 200";
-            $stmt = $conn->prepare($sql);
-            if ($stmt === false) send_json_error("SQL prepare failed for random fetch: " . $conn->error);
-            $stmt->bind_param("i", $random_id);
+            // 2. Shuffle IDs and pick 200
+            shuffle($ids);
+            $random_ids = array_slice($ids, 0, 200);
+
+            if (empty($random_ids)) {
+                 $output = []; // Send empty array if no IDs found
+                 // No need to query further
+                 $stmt = null;
+            } else {
+                // 3. Fetch recipes for those 200 IDs
+                $placeholders = implode(',', array_fill(0, count($random_ids), '?'));
+                $types = str_repeat('i', count($random_ids));
+                $sql = $baseSql . " WHERE id IN ($placeholders)";
+
+                $stmt = $conn->prepare($sql);
+                if ($stmt === false) send_json_error("SQL prepare failed for random fetch: " . $conn->error);
+                $stmt->bind_param($types, ...$random_ids);
+            }
         }
     }
 
-    if (!$stmt) send_json_error("Statement not prepared.");
-    if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
-    if (!empty($types)) $stmt->bind_param($types, ...$params);
-    if (!$stmt->execute()) send_json_error("SQL execute failed: " . $stmt->error);
+    // Only execute and fetch if a statement was prepared
+    if ($stmt) {
+        if (!empty($types)) $stmt->bind_param($types, ...$params);
+        if (!$stmt->execute()) send_json_error("SQL execute failed: " . $stmt->error);
 
-    $result = $stmt->get_result();
-    if ($result === false) send_json_error("SQL get_result failed: " . $stmt->error);
+        $result = $stmt->get_result();
+        if ($result === false) send_json_error("SQL get_result failed: " . $stmt->error);
 
-    if ($id > 0) {
-        $recipe = $result->fetch_assoc();
-        if ($recipe) {
-            $output = $recipe;
+        if ($id > 0) {
+            $recipe = $result->fetch_assoc();
+            if ($recipe) {
+                $output = $recipe;
+            }
+        } else {
+            // Overwrite output only if it wasn't set to an empty array before
+            if ($output === null) {
+                $output = [];
+                while($row = $result->fetch_assoc()) {
+                    $output[] = $row;
+                }
+            }
         }
-    } else {
-        $output = [];
-        while($row = $result->fetch_assoc()) {
-            $output[] = $row;
-        }
+        $stmt->close();
     }
-
-    $stmt->close();
     $conn->close();
 
     $json_output = json_encode($output);
