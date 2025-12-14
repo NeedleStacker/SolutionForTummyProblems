@@ -29,10 +29,9 @@ try {
     if ($id > 0) {
         // Fetch a single recipe by ID
         $sql = "SELECT * FROM recipes WHERE id = ?";
-        $types = "i";
-        $params[] = $id;
         $stmt = $conn->prepare($sql);
         if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
+        $stmt->bind_param("i", $id);
     } else {
         // Build a dynamic search query
         $baseSql = "SELECT id, title, ingredients, ner, site FROM recipes";
@@ -99,8 +98,7 @@ try {
 
     // Only execute and fetch if a statement was prepared
     if ($stmt) {
-        if (!empty($types)) $stmt->bind_param($types, ...$params);
-        if (!$stmt->execute()) send_json_error("SQL execute failed: " . $stmt->error);
+        if (!$stmt->execute()) send_json_error("SQL execute failed: ". $stmt->error);
 
         $result = $stmt->get_result();
         if ($result === false) send_json_error("SQL get_result failed: " . $stmt->error);
