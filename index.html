@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Loading Indicator -->
+    <div id="loader" class="loader-overlay" style="display: none;">
+        <div class="loader-spinner"></div>
+    </div>
+
     <div class="container-fluid"> <!-- Changed to fluid container -->
         <!-- Search Section -->
         <div id="search-section">
@@ -32,6 +37,7 @@
                                 <label for="search-input-title">By Title</label>
                                 <div class="input-group">
                                     <input type="text" id="search-input-title" class="form-control" placeholder="e.g., Tofu-Garlic Mashed Potatoes">
+                                    <span class="clear-btn" style="display: none;">&times;</span>
                                     <div class="input-group-append">
                                         <button class="btn btn-primary" type="button" id="search-button-title">Search</button>
                                     </div>
@@ -41,6 +47,7 @@
                                 <label for="search-input-ingredients">By Ingredients</label>
                                 <div class="input-group">
                                     <input type="text" id="search-input-ingredients" class="form-control" placeholder="e.g., garlic, vegetable broth, potatoes">
+                                    <span class="clear-btn" style="display: none;">&times;</span>
                                     <div class="input-group-append">
                                         <button class="btn btn-primary" type="button" id="search-button-ingredients">Search</button>
                                     </div>
@@ -50,6 +57,7 @@
                                 <label for="search-input-shopping">By Shopping List</label>
                                 <div class="input-group">
                                     <input type="text" id="search-input-shopping" class="form-control" placeholder="e.g., salt, pepper, olive oil">
+                                    <span class="clear-btn" style="display: none;">&times;</span>
                                     <div class="input-group-append">
                                         <button class="btn btn-primary" type="button" id="search-button-shopping">Search</button>
                                     </div>

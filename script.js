@@ -12,8 +12,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultsSection = document.getElementById('results-section');
     const recipeDetailsSection = document.getElementById('recipe-details-section');
     const tooltipBox = document.getElementById('unit-tooltip-box');
+    const loader = document.getElementById('loader');
 
     let conversions = {}; // Will be populated by fetching conversions.json
+
+    // --- Loader Functions ---
+    const showLoader = () => {
+        if(loader) loader.style.display = 'flex';
+    };
+
+    const hideLoader = () => {
+        if(loader) loader.style.display = 'none';
+    };
 
     // --- Fetch Conversion Data ---
     try {
@@ -151,6 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     function performSearch(params) {
+        showLoader();
         const queryString = new URLSearchParams(params).toString();
         const url = `api.php${queryString ? '?' + queryString : ''}`;
 
@@ -169,10 +180,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     resultsSection.innerHTML = '<p class="col-12 text-center">No recipes found.</p>';
                 }
-            }).catch(e => console.error('Fetch Error:', e));
+            }).catch(e => console.error('Fetch Error:', e))
+            .finally(hideLoader);
     }
 
     function fetchRecipeDetails(id) {
+        showLoader();
         fetch(`api.php?id=${id}`).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP error! status: ${r.status}`)))
             .then(data => {
                 if (data.error) { console.error('API Error:', data.error); return; }
@@ -196,7 +209,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 recipeDetailsSection.querySelector('#print-list-btn').addEventListener('click', () => printShoppingList(data.title));
 
                 applyTooltips(recipeDetailsSection);
-            }).catch(e => console.error('Fetch Details Error:', e));
+            }).catch(e => console.error('Fetch Details Error:', e))
+            .finally(hideLoader);
     }
 
     function printShoppingList(title) {
@@ -215,6 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const stringToColor = (str) => {
+        if (!str) return 'rgba(200, 200, 200, 0.85)';
         let hash = 0;
         str.split('').forEach(char => {
             hash = char.charCodeAt(0) + ((hash << 5) - hash);
@@ -225,11 +240,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         let g = parseInt(color.substring(2, 4), 16);
         let b = parseInt(color.substring(4, 6), 16);
 
-        r = Math.floor((r + 255) / 2);
-        g = Math.floor((g + 255) / 2);
-        b = Math.floor((b + 255) / 2);
+        r = Math.floor((r + 180)); // Lighter colors
+        g = Math.floor((g + 180));
+        b = Math.floor((b + 180));
 
-        return `rgba(${r}, ${g}, ${b}, 0.85)`;
+        return `rgba(${r > 255 ? 255 : r}, ${g > 255 ? 255 : g}, ${b > 255 ? 255 : b}, 0.85)`;
     };
 
     const observer = new MutationObserver((mutations) => {
@@ -258,6 +273,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     searchButtonShopping.addEventListener('click', () => {
         const shopping_list = searchInputShopping.value.trim();
         if (shopping_list) performSearch({ shopping_list: shopping_list });
+    });
+
+    // --- Event Listeners for Clear Buttons and Input ---
+    document.querySelectorAll('.input-group').forEach(group => {
+        const input = group.querySelector('input');
+        const clearBtn = group.querySelector('.clear-btn');
+
+        if (input && clearBtn) {
+            input.addEventListener('input', () => {
+                clearBtn.style.display = input.value.length > 0 ? 'inline' : 'none';
+            });
+
+            clearBtn.addEventListener('click', () => {
+                input.value = '';
+                clearBtn.style.display = 'none';
+                input.focus();
+            });
+        }
     });
 
     searchInputTitle.addEventListener('keypress', (e) => {
