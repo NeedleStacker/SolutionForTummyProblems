@@ -1,7 +1,20 @@
+<?php
+    // --- Dynamic Background Image Logic ---
+    $bg_dir = 'assets/bg/';
+    // Get all .webp files from the directory
+    $bg_files = glob($bg_dir . '*.webp');
+    // Select a random image from the array
+    $random_bg = $bg_files[array_rand($bg_files)];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <style>
+        body {
+            background-image: url('<?php echo $random_bg; ?>');
+        }
+    </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Search</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
