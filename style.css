@@ -88,12 +88,26 @@ body {
     margin-bottom: 50px; /* Added bottom margin */
 }
 
+.receipe-headline {
+    display: flex;
+    align-items: center; /* Vertically align image and title */
+    margin-bottom: 20px; /* Add some space below the headline */
+}
+
+.receipe-headline img {
+    width: 150px; /* Fixed width */
+    height: 150px; /* Fixed height */
+    object-fit: cover; /* Crop image to fit */
+    border-radius: 8px;
+    margin-right: 25px; /* Space between image and title */
+    flex-shrink: 0; /* Prevent image from shrinking */
+}
+
 .receipe-headline h2 {
     font-size: 2.5rem;
     font-weight: 300;
     color: white;
-    display: inline-flex;
-    align-items: center;
+    margin: 0; /* Remove default margin from h2 */
 }
 
 .icon-search-left::before,
