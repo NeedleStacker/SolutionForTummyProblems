@@ -90,5 +90,11 @@
     </a>
 
     <script src="script.js"></script>
+
+    <footer class="footer">
+        <div class="container text-center">
+            <span>Copyright &copy; <?php echo date("Y") ?> Izrada: Darko Majetić</span>
+        </div>
+    </footer>
 </body>
 </html>

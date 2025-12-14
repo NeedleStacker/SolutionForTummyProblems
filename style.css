@@ -9,9 +9,11 @@ body {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
     font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
 }
 
 .search-container {
@@ -411,4 +413,22 @@ body {
 
 .clear-btn:hover {
     color: white;
+}
+
+/* --- STICKY FOOTER STYLES --- */
+.container-fluid {
+    flex: 1; /* Allows this container to grow and push the footer down */
+}
+
+.footer {
+    width: 100%;
+    background-color: #1a1a1a; /* Dark background */
+    color: #a0a0a0; /* Light grey text */
+    padding: 20px 0;
+    margin-top: auto; /* Pushes footer to the bottom in a flex container */
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+}
+
+.footer span {
+    font-size: 0.9em;
 }
