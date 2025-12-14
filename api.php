@@ -9,18 +9,6 @@ function send_json_error($message) {
     exit;
 }
 
-// Function to create a URL-friendly slug from a string
-function slugify($text) {
-    //
-    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-    $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-    $text = preg_replace('~[^-\w]+~', '', $text);
-    $text = trim($text, '-');
-    $text = preg_replace('~-+~', '-', $text);
-    $text = strtolower($text);
-    return empty($text) ? 'n-a' : $text;
-}
-
 // Set a global error handler that uses our JSON error function
 set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
@@ -89,13 +77,14 @@ try {
     if ($id > 0) {
         $recipe = $result->fetch_assoc();
         if ($recipe) {
-            // Check for an image
+            // Check for an image based on the exact title
             $recipe['image_url'] = null;
-            $slug = slugify($recipe['title']);
+            $filename_base = $recipe['title'];
             $site_folder = $recipe['site'];
-            $extensions = ['jpg', 'jpeg', 'png', 'gif'];
+            $extensions = ['jpg', 'jpeg', 'png']; // Common extensions to check
+
             foreach ($extensions as $ext) {
-                $path = "imgs/{$site_folder}/{$slug}.{$ext}";
+                $path = "imgs/{$site_folder}/{$filename_base}.{$ext}";
                 if (file_exists($path)) {
                     $recipe['image_url'] = $path;
                     break;
