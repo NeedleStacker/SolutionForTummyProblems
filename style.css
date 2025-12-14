@@ -96,15 +96,15 @@ body {
 .recipe-icon-link {
     display: inline-block;
     padding: 10px;
-    background-color: #4CAF50; /* Example color */
-    border-radius: 50%;
+    background-color: #007bff;
+    border-radius: 15px;
     margin-right: 15px;
     transition: background-color 0.3s;
     vertical-align: middle;
 }
 
 .recipe-icon-link:hover {
-    background-color: #45a049;
+    background-color: #0056b3;
 }
 
 .receipe-headline .recipe-icon {
@@ -338,11 +338,11 @@ body {
     position: fixed;
     top: 30px;
     left: 30px;
-    width: 60px;
-    height: 60px;
+    width: 90px;
+    height: 90px;
     background-color: #007bff;
     color: white;
-    border-radius: 50%;
+    border-radius: 15px;
     text-align: center;
     line-height: 58px; /* Vertically center content */
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -360,8 +360,8 @@ body {
 }
 
 .floating-btn img {
-    width: 30px;
-    height: 30px;
+    width: 64px;
+    height: 64px;
 }
 
 /* --- LOADER STYLES --- */
