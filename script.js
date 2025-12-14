@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const rangesToWrap = [];
         const units = 'pounds|pound|ounce|ounces|inch|degrees F|degrees C|grm|ml|lbs|lb|cm|mm|m|km|in|ft|yd|kg|g|mg|oz|°C|°F|K|mL|l|L';
         const numberPattern = '(?:\\d+\\s+)?\\d+(?:(?:[.,/])\\d+)?'; // Handles "1 1/2", "3/4", "1.5", "1"
-        const fullUnitRegex = new RegExp(`(${numberPattern})(\\s*|-|)(\\b(?:${units})\\b)(?![a-zA-Z])`, 'gi');
+        const fullUnitRegex = new RegExp(`(${numberPattern})(\\s*|-|)(${units})(?![a-zA-Z])`, 'gi');
         const numberRegex = new RegExp(`(${numberPattern})\\s*$`);
         const unitOnlyRegex = new RegExp(`^\\s*(\\b(?:${units})\\b)(?![a-zA-Z])`, 'i');
 
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const ingredientsHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
                 const shoppingListHtml = shoppingList.map((item, i) => item ? `<div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="customCheck${i}"><label class="custom-control-label" for="customCheck${i}">${item}</label></div>` : '').join('');
 
-                recipeDetailsSection.innerHTML = `<div class="container"><div id="back-to-search-container"><div class="d-flex justify-content-between mb-4 action-buttons"><button class="btn btn-primary back-button">← Back to Search</button><button class="btn btn-info print-recipe-btn">Print</button></div></div><div class="row"><div class="col-12"><div class="recipe-main-content"><div class="receipe-headline my-5">${imageHtml}<h2>${data.title}</h2></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3 mr-2" id="select-all-btn">Select All</button><button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div></div></div></div>`;
+                recipeDetailsSection.innerHTML = `<div class="container"><div id="back-to-search-container"><div class="d-flex justify-content-between action-buttons"><button class="btn btn-primary back-button">← Back to Search</button><button class="btn btn-info print-recipe-btn">Print</button></div></div><div class="row"><div class="col-12"><div class="recipe-main-content"><div class="receipe-headline my-5">${imageHtml}<h2>${data.title}</h2></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3 mr-2" id="select-all-btn">Select All</button><button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div></div></div></div>`;
 
                 recipeDetailsSection.querySelector('.back-button').addEventListener('click', showSearchView);
                 recipeDetailsSection.querySelector('.print-recipe-btn').addEventListener('click', () => window.print());
