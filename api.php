@@ -77,19 +77,6 @@ try {
     if ($id > 0) {
         $recipe = $result->fetch_assoc();
         if ($recipe) {
-            // Check for an image based on the exact title
-            $recipe['image_url'] = null;
-            $filename_base = $recipe['title'];
-            $site_folder = $recipe['site'];
-            $extensions = ['jpg', 'jpeg', 'png']; // Common extensions to check
-
-            foreach ($extensions as $ext) {
-                $path = "imgs/{$site_folder}/{$filename_base}.{$ext}";
-                if (file_exists($path)) {
-                    $recipe['image_url'] = $path;
-                    break;
-                }
-            }
             $output = $recipe;
         }
     } else {
