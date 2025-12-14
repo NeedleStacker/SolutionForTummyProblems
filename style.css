@@ -95,8 +95,8 @@ body {
 }
 
 .receipe-headline img {
-    width: 150px; /* Fixed width */
-    height: 150px; /* Fixed height */
+    width: 250px; /* Fixed width */
+    height: 250px; /* Fixed height */
     object-fit: cover; /* Crop image to fit */
     border-radius: 8px;
     margin-right: 25px; /* Space between image and title */
