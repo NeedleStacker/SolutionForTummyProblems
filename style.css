@@ -89,6 +89,16 @@ body {
     margin-bottom: 50px; /* Added bottom margin */
 }
 
+#back-to-search-container {
+    position: -webkit-sticky; /* For Safari */
+    position: sticky;
+    top: 20px; /* Sticks 20px from the top */
+    z-index: 1020; /* Ensures it's above content but below modals */
+    background-color: rgba(0, 0, 0, 0.5); /* Optional: to prevent text overlap */
+    padding: 10px 0; /* Optional: adds some spacing */
+    border-radius: 10px;
+}
+
 .receipe-headline {
     text-align: center;
     margin-bottom: 20px;
@@ -263,7 +273,7 @@ body {
     }
 
     /* Hide non-essential elements */
-    .action-buttons, #print-list-btn, #search-section, #results-section, .floating-btn {
+    .action-buttons, #print-list-btn, #search-section, #results-section, .floating-btn, .recipe-icon-link, #select-all-btn {
         display: none !important;
     }
 
