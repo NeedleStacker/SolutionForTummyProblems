@@ -275,7 +275,7 @@ body {
     }
 
     /* Hide non-essential elements */
-    .action-buttons, #print-list-btn, #search-section, #results-section, .floating-btn, .recipe-icon-link, #select-all-btn {
+    .action-buttons, #print-list-btn, #search-section, #results-section, .floating-btn, .recipe-icon-link, #select-all-btn, .share-button {
         display: none !important;
     }
 
@@ -450,4 +450,15 @@ body {
     top: 15px;
     left: 15px;
     z-index: 10; /* Ensure it's above the background but below other modals */
+}
+
+/* --- TITLE LINK STYLES --- */
+.title-link {
+    color: white;
+    text-decoration: none;
+}
+
+.title-link:hover {
+    color: white;
+    text-decoration: none;
 }

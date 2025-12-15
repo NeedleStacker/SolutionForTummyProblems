@@ -35,11 +35,13 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="receipe-headline my-5 text-center">
-                            <h2>
-                                <span class="icon-search-left"></span>
-                                Recipe Search
-                                <span class="icon-search-right"></span>
-                            </h2>
+                            <a href="index.php" class="title-link">
+                                <h2>
+                                    <span class="icon-search-left"></span>
+                                    Recipe Search
+                                    <span class="icon-search-right"></span>
+                                </h2>
+                            </a>
                         </div>
                     </div>
                 </div>
