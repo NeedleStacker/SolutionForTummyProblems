@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loader = document.getElementById('loader');
 
     let conversions = {}; // Will be populated by fetching conversions.json
+    let lastRecipeId = 0;
+    let currentSearchParams = {};
 
     // --- Loader Functions ---
     const showLoader = () => {
@@ -180,15 +182,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         return str.substring(1, str.length - 1).split(delimiter).map(item => item.trim());
     };
 
-    function performSearch(params) {
+    function performSearch(params, isLoadMore = false) {
         showLoader();
-        const queryString = new URLSearchParams(params).toString();
-        const url = `api.php${queryString ? '?' + queryString : ''}`;
+        if (isLoadMore) {
+            params.after_id = lastRecipeId;
+        } else {
+            resultsSection.innerHTML = ''; // Clear previous results only on a new search
+            lastRecipeId = 0;
+            currentSearchParams = params;
+        }
 
-        fetch(url).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP error! status: ${r.status}`)))
+        const queryString = new URLSearchParams(params).toString();
+        const url = `api.php?${queryString}`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    return Promise.reject(new Error(`HTTP error! status: ${response.status}`));
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.error) { console.error('API Error:', data.error); return; }
-                resultsSection.innerHTML = '';
+                if (data.error) {
+                    console.error('API Error:', data.error);
+                    resultsSection.innerHTML = '<p class="col-12 text-center">An error occurred.</p>';
+                    return;
+                }
+
+                // Remove existing "Load More" button before adding new cards
+                const existingLoadMoreButton = document.getElementById('load-more-btn');
+                if (existingLoadMoreButton) {
+                    existingLoadMoreButton.remove();
+                }
+
                 if (data && data.length > 0) {
                     data.forEach(recipe => {
                         const card = document.createElement('div');
@@ -197,10 +223,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                         card.addEventListener('click', () => fetchRecipeDetails(recipe.id));
                         resultsSection.appendChild(card);
                     });
-                } else {
+
+                    lastRecipeId = data[data.length - 1].id;
+
+                    // Add "Load More" button if 50 results were returned
+                    if (data.length === 50) {
+                        const loadMoreButton = document.createElement('div');
+                        loadMoreButton.className = 'col-12 text-center mt-4 mb-5';
+                        loadMoreButton.innerHTML = `<button id="load-more-btn" class="btn btn-lg btn-primary">Load More Results</button>`;
+                        resultsSection.appendChild(loadMoreButton);
+                        document.getElementById('load-more-btn').addEventListener('click', () => {
+                            performSearch(currentSearchParams, true);
+                        });
+                    }
+
+                } else if (!isLoadMore) {
                     resultsSection.innerHTML = '<p class="col-12 text-center">No recipes found.</p>';
                 }
-            }).catch(e => console.error('Fetch Error:', e))
+            })
+            .catch(e => {
+                console.error('Fetch Error:', e);
+                resultsSection.innerHTML = '<p class="col-12 text-center">Failed to fetch recipes.</p>';
+            })
             .finally(hideLoader);
     }
 
@@ -223,7 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const ingredientsHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
                 const shoppingListHtml = shoppingList.map((item, i) => item ? `<div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="customCheck${i}"><label class="custom-control-label" for="customCheck${i}">${item}</label></div>` : '').join('');
 
-                recipeDetailsSection.innerHTML = `<div class="container"><div id="back-to-search-container"><div class="d-flex justify-content-between align-items-center action-buttons"><button class="btn btn-primary back-button">← Back to Search</button><div class="form-check text-white"><input class="form-check-input" type="checkbox" id="recipeNameToSearch"><label class="form-check-label" for="recipeNameToSearch">Recipe name to search box</label></div><button class="btn btn-info print-recipe-btn">Print</button></div></div><div class="row"><div class="col-12"><div class="recipe-main-content"><div id="google_translate_element"></div><button class="btn btn-success share-button"><img src="assets/share.png" alt="Share" style="width: 24px; height: 24px; margin-right: 8px;">Share</button><div class="receipe-headline my-5">${imageHtml}<h2>${data.title}</h2></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3 mr-2" id="select-all-btn">Select All</button><button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div></div></div></div>`;
+                recipeDetailsSection.innerHTML = `<div class="container"><div id="back-to-search-container"><div class="d-flex justify-content-between align-items-center action-buttons"><button class="btn btn-primary back-button">← Back to Search</button><div class="form-check text-white"><input class="form-check-input" type="checkbox" id="recipeNameToSearch"><label class="form-check-label" for="recipeNameToSearch">Recipe name to search box</label></div><button class="btn btn-info print-recipe-btn">Print</button></div></div><div class="row"><div class="col-12"><div class="recipe-main-content"><div id="google_translate_element"></div><button class="btn btn-success share-button"><img src="assets/share.png" alt="Share" style="width: 24px; height: 24px; margin-right: 8px;">Share</button><div class="receipe-headline">${imageHtml}<h2>${data.title}</h2></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3 mr-2" id="select-all-btn">Select All</button><button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div></div></div></div>`;
 
                 recipeDetailsSection.querySelector('.back-button').addEventListener('click', () => {
                     const recipeNameToSearch = document.getElementById('recipeNameToSearch');
@@ -312,17 +356,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- EVENT LISTENERS ---
     searchButtonTitle.addEventListener('click', () => {
         const title = searchInputTitle.value.trim();
-        if (title) performSearch({ title: title });
+        performSearch({ title: title });
     });
 
     searchButtonIngredients.addEventListener('click', () => {
         const ingredients = searchInputIngredients.value.trim();
-        if (ingredients) performSearch({ ingredients: ingredients });
+        performSearch({ ingredients: ingredients });
     });
 
     searchButtonShopping.addEventListener('click', () => {
         const shopping_list = searchInputShopping.value.trim();
-        if (shopping_list) performSearch({ shopping_list: shopping_list });
+        performSearch({ shopping_list: shopping_list });
     });
 
     // --- Event Listeners for Clear Buttons and Input ---

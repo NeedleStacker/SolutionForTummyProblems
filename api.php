@@ -17,13 +17,11 @@ set_error_handler(function($severity, $message, $file, $line) {
 try {
     // Sanitize inputs
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    $after_id = isset($_GET['after_id']) ? (int)$_GET['after_id'] : 0;
     $title_search = isset($_GET['title']) ? trim($_GET['title']) : '';
     $ingredients_search = isset($_GET['ingredients']) ? trim($_GET['ingredients']) : '';
     $shopping_list_search = isset($_GET['shopping_list']) ? trim($_GET['shopping_list']) : '';
 
-    $sql = "";
-    $types = '';
-    $params = [];
     $output = null;
 
     if ($id > 0) {
@@ -33,9 +31,12 @@ try {
         if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
         $stmt->bind_param("i", $id);
     } else {
-        // Build a dynamic search query
+        // Build a dynamic search query with keyset pagination
         $baseSql = "SELECT id, title, ingredients, ner, site FROM recipes";
         $conditions = [];
+        $params = [];
+        $types = '';
+
         if (!empty($title_search)) {
             $conditions[] = "title LIKE ?";
             $params[] = "%" . $title_search . "%";
@@ -58,41 +59,26 @@ try {
             }
         }
 
+        // Keyset pagination condition
+        if ($after_id > 0) {
+            $conditions[] = "id > ?";
+            $params[] = $after_id;
+            $types .= 'i';
+        }
+
+        $sql = $baseSql;
         if (!empty($conditions)) {
-            $sql = $baseSql . " WHERE " . implode(" AND ", $conditions) . " LIMIT 200";
-            $stmt = $conn->prepare($sql);
-            if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        // All search/browse queries are ordered by ID for pagination
+        $sql .= " ORDER BY id ASC LIMIT 50";
+
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) send_json_error("SQL prepare failed: " . $conn->error);
+
+        if (!empty($params)) {
             $stmt->bind_param($types, ...$params);
-        } else {
-            // Truly random fetch, optimized for performance
-            // 1. Get all recipe IDs
-            $idsResult = $conn->query("SELECT id FROM recipes");
-            if (!$idsResult) send_json_error("Could not fetch recipe IDs: " . $conn->error);
-
-            $ids = [];
-            while($row = $idsResult->fetch_assoc()) {
-                $ids[] = $row['id'];
-            }
-            $idsResult->free();
-
-            // 2. Shuffle IDs and pick 200
-            shuffle($ids);
-            $random_ids = array_slice($ids, 0, 200);
-
-            if (empty($random_ids)) {
-                 $output = []; // Send empty array if no IDs found
-                 // No need to query further
-                 $stmt = null;
-            } else {
-                // 3. Fetch recipes for those 200 IDs
-                $placeholders = implode(',', array_fill(0, count($random_ids), '?'));
-                $types = str_repeat('i', count($random_ids));
-                $sql = $baseSql . " WHERE id IN ($placeholders)";
-
-                $stmt = $conn->prepare($sql);
-                if ($stmt === false) send_json_error("SQL prepare failed for random fetch: " . $conn->error);
-                $stmt->bind_param($types, ...$random_ids);
-            }
         }
     }
 
