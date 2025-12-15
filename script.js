@@ -223,15 +223,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const ingredientsHtml = ingredients.map(item => item ? `<li>${item}</li>` : '').join('');
                 const shoppingListHtml = shoppingList.map((item, i) => item ? `<div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="customCheck${i}"><label class="custom-control-label" for="customCheck${i}">${item}</label></div>` : '').join('');
 
-                recipeDetailsSection.innerHTML = `<div class="container"><div id="back-to-search-container"><div class="d-flex justify-content-between action-buttons"><button class="btn btn-primary back-button">← Back to Search</button><button class="btn btn-info print-recipe-btn">Print</button></div></div><div class="row"><div class="col-12"><div class="recipe-main-content"><button class="btn btn-success share-button"><img src="assets/share.png" alt="Share" style="width: 24px; height: 24px; margin-right: 8px;">Share</button><div class="receipe-headline my-5">${imageHtml}<h2>${data.title}</h2></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3 mr-2" id="select-all-btn">Select All</button><button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div></div></div></div>`;
+                recipeDetailsSection.innerHTML = `<div class="container"><div id="back-to-search-container"><div class="d-flex justify-content-between align-items-center action-buttons"><button class="btn btn-primary back-button">← Back to Search</button><div class="form-check text-white"><input class="form-check-input" type="checkbox" id="recipeNameToSearch"><label class="form-check-label" for="recipeNameToSearch">Recipe name to search box</label></div><button class="btn btn-info print-recipe-btn">Print</button></div></div><div class="row"><div class="col-12"><div class="recipe-main-content"><div id="google_translate_element"></div><button class="btn btn-success share-button"><img src="assets/share.png" alt="Share" style="width: 24px; height: 24px; margin-right: 8px;">Share</button><div class="receipe-headline my-5">${imageHtml}<h2>${data.title}</h2></div><div class="row recipe-body"><div class="col-12 col-lg-8">${directionsHtml}</div><div class="col-12 col-lg-4"><div class="ingredients mb-4"><h4>Ingredients</h4><ul>${ingredientsHtml}</ul></div><div class="ingredients"><h4>Shopping List</h4>${shoppingListHtml}<button class="btn btn-secondary btn-sm mt-3 mr-2" id="select-all-btn">Select All</button><button class="btn btn-secondary btn-sm mt-3" id="print-list-btn">Print Selected</button></div></div></div></div></div></div></div>`;
 
-                recipeDetailsSection.querySelector('.back-button').addEventListener('click', showSearchView);
+                recipeDetailsSection.querySelector('.back-button').addEventListener('click', () => {
+                    const recipeNameToSearch = document.getElementById('recipeNameToSearch');
+                    if (recipeNameToSearch.checked) {
+                        showSearchView(data.title);
+                    } else {
+                        showSearchView();
+                    }
+                });
                 recipeDetailsSection.querySelector('.print-recipe-btn').addEventListener('click', () => window.print());
                 recipeDetailsSection.querySelector('#print-list-btn').addEventListener('click', () => printShoppingList(data.title));
 
                 const shareButton = recipeDetailsSection.querySelector('.share-button');
                 shareButton.addEventListener('click', () => {
-                    const shareUrl = `${window.location.origin}${window.location.pathname}?id=${id}`;
+                    const shareUrl = `${window.location.origin}${window.location.pathname}?number=${id}&name=${encodeURIComponent(data.title)}`;
                     navigator.clipboard.writeText(shareUrl).then(() => {
                         shareButton.innerHTML = '<img src="assets/share.png" alt="Share" style="width: 24px; height: 24px; margin-right: 8px;">Link Copied!';
                         setTimeout(() => {
@@ -261,11 +268,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         win.document.close(); win.print();
     }
 
-    function showSearchView() {
+    function showSearchView(recipeTitle = '') {
         searchSection.style.display = 'block';
         resultsSection.style.display = 'flex';
         recipeDetailsSection.style.display = 'none';
         recipeDetailsSection.innerHTML = '';
+        if (recipeTitle) {
+            searchInputTitle.value = recipeTitle;
+        }
     }
 
     const stringToColor = (str) => {
@@ -347,7 +357,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Initial Page Load Logic ---
     const urlParams = new URLSearchParams(window.location.search);
-    const recipeId = urlParams.get('id');
+    const recipeId = urlParams.get('number');
+    const recipeName = urlParams.get('name');
+
+    if (recipeName) {
+        searchInputTitle.value = recipeName;
+    }
 
     if (recipeId) {
         fetchRecipeDetails(recipeId);
