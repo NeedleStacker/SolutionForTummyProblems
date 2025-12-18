@@ -1,7 +1,6 @@
 import os
 import re
 import shutil
-import argparse
 
 def extract_nouns(text):
     """Extracts potential nouns from ingredient text using heuristics."""
@@ -122,13 +121,12 @@ def parse_mmf(file_path):
     return recipes if recipes else None
 
 def main():
-    parser = argparse.ArgumentParser(description='Parse Meal Master MMF files and generate SQL INSERT statements.')
-    parser.add_argument('source_folder', type=str, help='The folder containing the MMF files.')
-    parser.add_argument('output_file', type=str, help='The name of the output .sql file.')
-    args = parser.parse_args()
-
-    source_folder = args.source_folder
-    output_file = args.output_file
+    """
+    Parses all files in the current directory, generates an 'inserts.sql' file,
+    and moves parsed files to a 'Parsed' subdirectory.
+    """
+    source_folder = '.'  # Use the current directory
+    output_file = 'inserts.sql'
     parsed_folder = os.path.join(source_folder, 'Parsed')
 
     if not os.path.exists(parsed_folder):
